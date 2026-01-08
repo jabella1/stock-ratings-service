@@ -1,0 +1,38 @@
+package handler
+
+import (
+	"github.com/jabella1/stock-ratings-service/internal/app/features/stock/app/interfaces"
+	"github.com/jabella1/stock-ratings-service/internal/app/features/stock/app/query"
+	"github.com/jabella1/stock-ratings-service/internal/app/features/stock/common"
+	"github.com/jabella1/stock-ratings-service/internal/app/features/stock/domain/repositories"
+)
+
+type StockRatingService struct {
+	stockRatingRepository repositories.StockRatingRepository
+}
+
+func CreateGetStockRatingByTickerQueryHandler(stockRatingRepository repositories.StockRatingRepository) interfaces.GetStockRatingByTickerQueryHandler {
+	return &StockRatingService{
+		stockRatingRepository: stockRatingRepository,
+	}
+}
+
+func (s *StockRatingService) GetStockRatingByTicker(getStockRatingByTickerQuery *query.GetStockRatingByTickerQuery) (*query.GetStockRatingByTickerResult, error) {
+	stockRating, err := s.stockRatingRepository.GetStockRatingByTicker(getStockRatingByTickerQuery.Ticker)
+	if err != nil {
+		return nil, err
+	}
+
+	return &query.GetStockRatingByTickerResult{
+		Result: &common.StockRatingResult{
+			Ticker:     stockRating.GetTicker(),
+			Company:    stockRating.GetCompany(),
+			Brokerage:  stockRating.GetBrokerage(),
+			Action:     stockRating.GetAction(),
+			RatingFrom: stockRating.GetRatingFrom(),
+			RatingTo:   stockRating.GetRatingTo(),
+			TargetFrom: stockRating.GetTargetFrom(),
+			TargetTo:   stockRating.GetTargetTo(),
+		},
+	}, nil
+}
