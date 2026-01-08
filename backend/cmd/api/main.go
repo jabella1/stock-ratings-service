@@ -5,9 +5,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/jabella1/stock-ratings-service/internal/app/features/stock/app/query/handler"
-	"github.com/jabella1/stock-ratings-service/internal/app/features/stock/infra/db/postgres" // ← tu paquete
-	"github.com/jabella1/stock-ratings-service/internal/app/features/stock/interface/api/rest"
+	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/query/handler"
+	"github.com/jabella1/stock-ratings-service/internal/features/stock/infra/db/postgres"
+	"github.com/jabella1/stock-ratings-service/internal/features/stock/interface/api/rest"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 )
