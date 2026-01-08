@@ -3,9 +3,9 @@ package postgres
 import (
 	"context"
 
-	"github.com/jabella1/stock-ratings-service/internal/app/features/stock/domain/entities"
-	"github.com/jabella1/stock-ratings-service/internal/app/features/stock/domain/repositories"
-	"github.com/jabella1/stock-ratings-service/internal/app/features/stock/infra/db/sqlc"
+	"github.com/jabella1/stock-ratings-service/internal/features/stock/domain/entities"
+	"github.com/jabella1/stock-ratings-service/internal/features/stock/domain/repositories"
+	"github.com/jabella1/stock-ratings-service/internal/features/stock/infra/db/sqlc"
 )
 
 type SqlcStockRatingRepository struct {

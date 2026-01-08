@@ -3,8 +3,8 @@ package rest
 import (
 	"net/http"
 
-	"github.com/jabella1/stock-ratings-service/internal/app/features/stock/app/interfaces"
-	"github.com/jabella1/stock-ratings-service/internal/app/features/stock/app/query"
+	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/interfaces"
+	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/query"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )

@@ -3,7 +3,7 @@ package postgres
 import (
 	"context"
 
-	db "github.com/jabella1/stock-ratings-service/internal/app/features/stock/infra/db/sqlc"
+	db "github.com/jabella1/stock-ratings-service/internal/features/stock/infra/db/sqlc"
 	"github.com/jackc/pgx/v5"
 )
 

@@ -1,7 +1,7 @@
 package repositories
 
 import (
-	"github.com/jabella1/stock-ratings-service/internal/app/features/stock/domain/entities"
+	"github.com/jabella1/stock-ratings-service/internal/features/stock/domain/entities"
 )
 
 type StockRatingRepository interface {
