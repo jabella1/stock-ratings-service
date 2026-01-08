@@ -1,10 +1,10 @@
 package handler
 
 import (
-	"github.com/jabella1/stock-ratings-service/internal/app/features/stock/app/interfaces"
-	"github.com/jabella1/stock-ratings-service/internal/app/features/stock/app/query"
-	"github.com/jabella1/stock-ratings-service/internal/app/features/stock/common"
-	"github.com/jabella1/stock-ratings-service/internal/app/features/stock/domain/repositories"
+	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/interfaces"
+	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/query"
+	"github.com/jabella1/stock-ratings-service/internal/features/stock/common"
+	"github.com/jabella1/stock-ratings-service/internal/features/stock/domain/repositories"
 )
 
 type StockRatingService struct {
