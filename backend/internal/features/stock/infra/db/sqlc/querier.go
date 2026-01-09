@@ -10,6 +10,7 @@ import (
 
 type Querier interface {
 	GetStockRatingByTicker(ctx context.Context, ticker string) (ChallengeStockRating, error)
+	UpsertStockRating(ctx context.Context, arg UpsertStockRatingParams) error
 }
 
 var _ Querier = (*Queries)(nil)

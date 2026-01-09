@@ -7,6 +7,8 @@ package sqlc
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const getStockRatingByTicker = `-- name: GetStockRatingByTicker :one
@@ -32,4 +34,46 @@ func (q *Queries) GetStockRatingByTicker(ctx context.Context, ticker string) (Ch
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const upsertStockRating = `-- name: UpsertStockRating :exec
+INSERT INTO challenge.stock_rating (
+    ticker, company, brokerage, action, rating_from, rating_to,
+    target_from, target_to
+) VALUES (
+    $1, $2, $3, $4, $5, $6, $7, $8
+)
+ON CONFLICT (ticker) DO UPDATE SET
+    company = EXCLUDED.company,
+    brokerage = EXCLUDED.brokerage,
+    action = EXCLUDED.action,
+    rating_from = EXCLUDED.rating_from,
+    rating_to = EXCLUDED.rating_to,
+    target_from = EXCLUDED.target_from,
+    target_to = EXCLUDED.target_to
+`
+
+type UpsertStockRatingParams struct {
+	Ticker     string         `json:"ticker"`
+	Company    string         `json:"company"`
+	Brokerage  pgtype.Text    `json:"brokerage"`
+	Action     pgtype.Text    `json:"action"`
+	RatingFrom pgtype.Text    `json:"rating_from"`
+	RatingTo   pgtype.Text    `json:"rating_to"`
+	TargetFrom pgtype.Numeric `json:"target_from"`
+	TargetTo   pgtype.Numeric `json:"target_to"`
+}
+
+func (q *Queries) UpsertStockRating(ctx context.Context, arg UpsertStockRatingParams) error {
+	_, err := q.db.Exec(ctx, upsertStockRating,
+		arg.Ticker,
+		arg.Company,
+		arg.Brokerage,
+		arg.Action,
+		arg.RatingFrom,
+		arg.RatingTo,
+		arg.TargetFrom,
+		arg.TargetTo,
+	)
+	return err
 }
