@@ -3,6 +3,9 @@ package postgres
 import (
 	"context"
 
+	"github.com/jabella1/stock-ratings-service/internal/features/common/pagination"
+	"github.com/jabella1/stock-ratings-service/internal/features/common/utils"
+	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/query"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/domain/entities"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/domain/repositories"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/infra/db/sqlc"
@@ -25,6 +28,38 @@ func (r *SqlcStockRatingRepository) GetStockRatingByTicker(ticker string) (*enti
 	return fromSqlcStockRatingToEntity(&stockRating)
 }
 
+func (r *SqlcStockRatingRepository) GetListStockRating(getListStockRatingQuery *query.GetListStockRatingQuery) (*pagination.PaginatedList[entities.StockRating], error) {
+	context := context.Background()
+	sqlcStockRatings, err := r.queries.ListStockRatings(context, sqlc.ListStockRatingsParams{
+		Column1: *getListStockRatingQuery.Search,
+		Column2: *getListStockRatingQuery.OrderBy,
+		Column3: *getListStockRatingQuery.OrderDirection,
+		Column4: *getListStockRatingQuery.PageSize,
+		Column5: utils.CalculateOffset(*getListStockRatingQuery.PageNumber, *getListStockRatingQuery.PageSize),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	totalRecords, err := r.queries.CountStockRatings(context,
+		*getListStockRatingQuery.Search,
+	)
+
+	var stockRatings []entities.StockRating
+	for _, sqlcStockRating := range sqlcStockRatings {
+		stockRating, err := fromSqlcStockRatingToEntity(&sqlcStockRating)
+		if err != nil {
+			return nil, err
+		}
+		stockRatings = append(stockRatings, *stockRating)
+	}
+
+	return &pagination.PaginatedList[entities.StockRating]{
+		Results:      &stockRatings,
+		TotalRecords: totalRecords,
+	}, nil
+}
+
 func fromSqlcStockRatingToEntity(sqlcStockRating *sqlc.ChallengeStockRating) (*entities.StockRating, error) {
 	return entities.CreateStockRating(
 		sqlcStockRating.Ticker,
@@ -33,7 +68,7 @@ func fromSqlcStockRatingToEntity(sqlcStockRating *sqlc.ChallengeStockRating) (*e
 		&sqlcStockRating.Action.String,
 		&sqlcStockRating.RatingFrom.String,
 		&sqlcStockRating.RatingTo.String,
-		Float64FromNumeric(sqlcStockRating.TargetFrom),
-		Float64FromNumeric(sqlcStockRating.TargetTo),
+		utils.Float64FromNumeric(sqlcStockRating.TargetFrom),
+		utils.Float64FromNumeric(sqlcStockRating.TargetTo),
 	)
 }
