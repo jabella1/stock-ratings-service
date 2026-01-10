@@ -1,4 +1,4 @@
-package postgres
+package utils
 
 import (
 	"fmt"
@@ -58,4 +58,14 @@ func NumericFromString(s string) pgtype.Numeric {
 	}
 
 	return numeric
+}
+
+func CalculateOffset(pageNumber, pageSize int32) int32 {
+	if pageNumber <= 1 {
+		return 0
+	}
+	if pageSize <= 0 {
+		return 0
+	}
+	return (pageNumber - 1) * pageSize
 }
