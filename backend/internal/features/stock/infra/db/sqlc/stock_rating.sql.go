@@ -11,6 +11,26 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countStockRatings = `-- name: CountStockRatings :one
+SELECT COUNT(*)
+FROM challenge.stock_rating
+WHERE 
+    ($1::text = '' OR 
+            (ticker IS NOT NULL AND ticker ILIKE '%' || $1::text || '%') OR
+            (company IS NOT NULL AND company ILIKE '%' || $1::text || '%') OR
+            (brokerage IS NOT NULL AND brokerage ILIKE '%' || $1::text || '%') OR
+            (action IS NOT NULL AND action ILIKE '%' || $1::text || '%') OR
+            (rating_from IS NOT NULL AND rating_from ILIKE '%' || $1::text || '%') OR
+            (rating_to IS NOT NULL AND rating_to ILIKE '%' || $1::text || '%'))
+`
+
+func (q *Queries) CountStockRatings(ctx context.Context, dollar_1 string) (int64, error) {
+	row := q.db.QueryRow(ctx, countStockRatings, dollar_1)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const getStockRatingByTicker = `-- name: GetStockRatingByTicker :one
 SELECT id, ticker, company, brokerage, action, rating_from, rating_to,
        target_from, target_to, created_at
@@ -34,6 +54,80 @@ func (q *Queries) GetStockRatingByTicker(ctx context.Context, ticker string) (Ch
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const listStockRatings = `-- name: ListStockRatings :many
+SELECT 
+    id, ticker, company, brokerage, action, rating_from, rating_to,
+    target_from, target_to, created_at
+FROM challenge.stock_rating
+WHERE 
+($1::text = '' OR 
+        (ticker IS NOT NULL AND ticker ILIKE '%' || $1::text || '%') OR
+        (company IS NOT NULL AND company ILIKE '%' || $1::text || '%') OR
+        (brokerage IS NOT NULL AND brokerage ILIKE '%' || $1::text || '%') OR
+        (action IS NOT NULL AND action ILIKE '%' || $1::text || '%') OR
+        (rating_from IS NOT NULL AND rating_from ILIKE '%' || $1::text || '%') OR
+        (rating_to IS NOT NULL AND rating_to ILIKE '%' || $1::text || '%'))
+ORDER BY 
+    CASE WHEN $2::text = 'ticker' AND $3::text = 'asc' THEN ticker END ASC,
+    CASE WHEN $2::text = 'ticker' AND $3::text = 'desc' THEN ticker END DESC,
+    CASE WHEN $2::text = 'company' AND $3::text = 'asc' THEN company END ASC,
+    CASE WHEN $2::text = 'company' AND $3::text = 'desc' THEN company END DESC,
+    CASE WHEN $2::text = 'target_from' AND $3::text = 'asc' THEN target_from END ASC,
+    CASE WHEN $2::text = 'target_from' AND $3::text = 'desc' THEN target_from END DESC,
+    CASE WHEN $2::text = 'target_to' AND $3::text = 'asc' THEN target_to END ASC,
+    CASE WHEN $2::text = 'target_to' AND $3::text = 'desc' THEN target_to END DESC,
+    CASE WHEN $2::text = 'created_at' AND $3::text = 'asc' THEN created_at END ASC,
+    CASE WHEN $2::text = 'created_at' AND $3::text = 'desc' THEN created_at END DESC,
+    id ASC
+LIMIT $4::int
+OFFSET $5::int
+`
+
+type ListStockRatingsParams struct {
+	Column1 string `json:"column_1"`
+	Column2 string `json:"column_2"`
+	Column3 string `json:"column_3"`
+	Column4 int32  `json:"column_4"`
+	Column5 int32  `json:"column_5"`
+}
+
+func (q *Queries) ListStockRatings(ctx context.Context, arg ListStockRatingsParams) ([]ChallengeStockRating, error) {
+	rows, err := q.db.Query(ctx, listStockRatings,
+		arg.Column1,
+		arg.Column2,
+		arg.Column3,
+		arg.Column4,
+		arg.Column5,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ChallengeStockRating
+	for rows.Next() {
+		var i ChallengeStockRating
+		if err := rows.Scan(
+			&i.ID,
+			&i.Ticker,
+			&i.Company,
+			&i.Brokerage,
+			&i.Action,
+			&i.RatingFrom,
+			&i.RatingTo,
+			&i.TargetFrom,
+			&i.TargetTo,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const upsertStockRating = `-- name: UpsertStockRating :exec

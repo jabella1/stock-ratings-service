@@ -9,7 +9,9 @@ import (
 )
 
 type Querier interface {
+	CountStockRatings(ctx context.Context, dollar_1 string) (int64, error)
 	GetStockRatingByTicker(ctx context.Context, ticker string) (ChallengeStockRating, error)
+	ListStockRatings(ctx context.Context, arg ListStockRatingsParams) ([]ChallengeStockRating, error)
 	UpsertStockRating(ctx context.Context, arg UpsertStockRatingParams) error
 }
 
