@@ -1,6 +1,6 @@
-package common
+package dto
 
-type StockRatingResult struct {
+type GetStockRatingByTickerResult struct {
 	ID         int64
 	Ticker     string
 	Company    string

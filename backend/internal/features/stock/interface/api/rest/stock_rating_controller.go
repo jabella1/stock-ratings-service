@@ -11,20 +11,26 @@ import (
 
 type StockRatingController struct {
 	getStockRatingByTickerQueryHandler interfaces.GetStockRatingByTickerQueryHandler
+	getListStockRatingQueryHandler     interfaces.GetListStockRatingQueryHandler
 }
 
-func CreateStockRatingController(e *echo.Echo, stockRatingService interfaces.GetStockRatingByTickerQueryHandler) *StockRatingController {
-	StockRatingController := &StockRatingController{getStockRatingByTickerQueryHandler: stockRatingService}
+func CreateStockRatingController(e *echo.Echo,
+	getStockRatingByTickerQueryHandler interfaces.GetStockRatingByTickerQueryHandler,
+	getListStockRatingQueryHandler interfaces.GetListStockRatingQueryHandler) *StockRatingController {
+	StockRatingController := &StockRatingController{getStockRatingByTickerQueryHandler: getStockRatingByTickerQueryHandler,
+		getListStockRatingQueryHandler: getListStockRatingQueryHandler}
+
 	e.GET("/api/v1/get-stock-rating-by-ticker/:ticker", StockRatingController.GetStockRatingByTicker)
+	e.POST("/api/v1/get-list-stock-rating", StockRatingController.GetListStockRating)
 	e.Use(middleware.Recover())
 	return StockRatingController
 }
 
-func (c *StockRatingController) GetStockRatingByTicker(ctx echo.Context) error {
-	ticker := ctx.Param("ticker")
+func (c *StockRatingController) GetStockRatingByTicker(context echo.Context) error {
+	ticker := context.Param("ticker")
 
 	if ticker == "" {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "ticker parameter is required"})
+		return context.JSON(http.StatusBadRequest, map[string]string{"error": "ticker parameter is required"})
 	}
 
 	getStockRatingByTickerQuery := &query.GetStockRatingByTickerQuery{
@@ -33,8 +39,23 @@ func (c *StockRatingController) GetStockRatingByTicker(ctx echo.Context) error {
 
 	result, err := c.getStockRatingByTickerQueryHandler.GetStockRatingByTicker(getStockRatingByTickerQuery)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return context.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
-	return ctx.JSON(http.StatusOK, result)
+	return context.JSON(http.StatusOK, result)
+}
+
+func (c *StockRatingController) GetListStockRating(context echo.Context) error {
+	getListStockRatingQuery := &query.GetListStockRatingQuery{}
+
+	if err := context.Bind(getListStockRatingQuery); err != nil {
+		return context.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request body"})
+	}
+
+	result, err := c.getListStockRatingQueryHandler.GetListStockRating(getListStockRatingQuery)
+	if err != nil {
+		return context.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return context.JSON(http.StatusOK, result)
 }

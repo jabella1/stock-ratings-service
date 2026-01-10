@@ -33,9 +33,9 @@ func main() {
 	queries := postgres.NewQueries(connection)
 	stockRatingRepository := postgres.CreateSqlcStockRatingRepository(queries)
 	stockRatingByTickerQueryHandler := handler.CreateGetStockRatingByTickerQueryHandler(stockRatingRepository)
-
+	getListStockRatingQueryHandler := handler.CreateGetListStockRatingQueryHandler(stockRatingRepository)
 	e := echo.New()
-	rest.CreateStockRatingController(e, stockRatingByTickerQueryHandler)
+	rest.CreateStockRatingController(e, stockRatingByTickerQueryHandler, getListStockRatingQueryHandler)
 
 	if err := e.Start(port); err != nil {
 		log.Fatalf("Failed to start server: %v", err)

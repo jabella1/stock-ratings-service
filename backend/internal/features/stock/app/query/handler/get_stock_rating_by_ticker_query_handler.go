@@ -1,9 +1,9 @@
 package handler
 
 import (
+	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/dto"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/interfaces"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/query"
-	"github.com/jabella1/stock-ratings-service/internal/features/stock/common"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/domain/repositories"
 )
 
@@ -24,7 +24,7 @@ func (s *StockRatingService) GetStockRatingByTicker(getStockRatingByTickerQuery 
 	}
 
 	return &query.GetStockRatingByTickerResult{
-		Result: &common.StockRatingResult{
+		Result: &dto.GetStockRatingByTickerResult{
 			Ticker:     stockRating.GetTicker(),
 			Company:    stockRating.GetCompany(),
 			Brokerage:  stockRating.GetBrokerage(),
