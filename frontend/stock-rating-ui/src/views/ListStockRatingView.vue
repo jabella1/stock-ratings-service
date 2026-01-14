@@ -196,7 +196,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { type PaginatedApiResponse, type FetchRatingsParams, DEFAULT_METADATA } from '@/api/types/rating'
+import { type PaginatedApiResponse, type FetchRatingsParams, DEFAULT_METADATA } from '@/api/models/stockRatingModel'
 import { fetchListStockRating } from '@/api/services/stockRatingService'
 
 const filters = ref<FetchRatingsParams>({

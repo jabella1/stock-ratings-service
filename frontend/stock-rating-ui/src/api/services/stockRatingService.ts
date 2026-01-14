@@ -1,4 +1,4 @@
-import type { FetchRatingsParams, PaginatedApiResponse } from '@/api/types/rating'
+import type { FetchRatingsParams, PaginatedApiResponse } from '@/api/models/stockRatingModel'
 import { API_CONFIG } from '../endpoints'
 
 export async function fetchListStockRating(params: FetchRatingsParams): Promise<PaginatedApiResponse> {
