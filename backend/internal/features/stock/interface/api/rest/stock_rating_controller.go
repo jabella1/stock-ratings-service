@@ -6,7 +6,6 @@ import (
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/interfaces"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/query"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 )
 
 type StockRatingController struct {
@@ -22,7 +21,6 @@ func CreateStockRatingController(e *echo.Echo,
 
 	e.GET("/api/v1/get-stock-rating-by-ticker/:ticker", StockRatingController.GetStockRatingByTicker)
 	e.POST("/api/v1/get-list-stock-rating", StockRatingController.GetListStockRating)
-	e.Use(middleware.Recover())
 	return StockRatingController
 }
 
