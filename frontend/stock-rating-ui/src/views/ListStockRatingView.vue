@@ -197,7 +197,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { type PaginatedApiResponse, type FetchRatingsParams, DEFAULT_METADATA } from '@/api/types/rating'
-import { fetchRatings } from '@/api/services/ratingService'
+import { fetchListStockRating } from '@/api/services/stockRatingService'
 
 const filters = ref<FetchRatingsParams>({
   search: '',
@@ -251,7 +251,7 @@ function sortBy(column: string) {
 async function fetchData() {
   loading.value = true
   try {
-    const result = await fetchRatings(filters.value)
+    const result = await fetchListStockRating(filters.value)
     apiData.value = {
       Results: Array.isArray(result.Results) ? result.Results : [],
       Metadata: result.Metadata || {
