@@ -6,8 +6,8 @@ import (
 	"github.com/jabella1/stock-ratings-service/internal/features/common/utils"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/query"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/domain/entities"
-	"github.com/jabella1/stock-ratings-service/internal/features/stock/domain/interface/repository"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/domain/pagination"
+	"github.com/jabella1/stock-ratings-service/internal/features/stock/domain/repositories"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/infra/db/sqlc"
 )
 
@@ -15,7 +15,7 @@ type SqlcStockRatingRepository struct {
 	queries *sqlc.Queries
 }
 
-func CreateSqlcStockRatingRepository(queries *sqlc.Queries) repository.StockRatingRepository {
+func CreateSqlcStockRatingRepository(queries *sqlc.Queries) repositories.StockRatingRepository {
 	return &SqlcStockRatingRepository{queries: queries}
 }
 

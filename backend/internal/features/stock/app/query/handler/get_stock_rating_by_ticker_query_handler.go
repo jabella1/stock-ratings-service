@@ -4,14 +4,14 @@ import (
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/dto"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/interfaces"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/query"
-	"github.com/jabella1/stock-ratings-service/internal/features/stock/domain/interface/repository"
+	"github.com/jabella1/stock-ratings-service/internal/features/stock/domain/repositories"
 )
 
 type StockRatingService struct {
-	stockRatingRepository repository.StockRatingRepository
+	stockRatingRepository repositories.StockRatingRepository
 }
 
-func CreateGetStockRatingByTickerQueryHandler(stockRatingRepository repository.StockRatingRepository) interfaces.GetStockRatingByTickerQueryHandler {
+func CreateGetStockRatingByTickerQueryHandler(stockRatingRepository repositories.StockRatingRepository) interfaces.GetStockRatingByTickerQueryHandler {
 	return &StockRatingService{
 		stockRatingRepository: stockRatingRepository,
 	}

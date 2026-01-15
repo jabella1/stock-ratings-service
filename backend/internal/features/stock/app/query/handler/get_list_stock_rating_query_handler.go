@@ -3,15 +3,15 @@ package handler
 import (
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/dto"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/query"
-	"github.com/jabella1/stock-ratings-service/internal/features/stock/domain/interface/repository"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/domain/pagination"
+	"github.com/jabella1/stock-ratings-service/internal/features/stock/domain/repositories"
 )
 
 type GetListStockRatingQueryHandler struct {
-	stockRatingRepository repository.StockRatingRepository
+	stockRatingRepository repositories.StockRatingRepository
 }
 
-func CreateGetListStockRatingQueryHandler(stockRatingRepository repository.StockRatingRepository) *GetListStockRatingQueryHandler {
+func CreateGetListStockRatingQueryHandler(stockRatingRepository repositories.StockRatingRepository) *GetListStockRatingQueryHandler {
 	return &GetListStockRatingQueryHandler{
 		stockRatingRepository: stockRatingRepository,
 	}
