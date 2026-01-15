@@ -69,3 +69,14 @@ func CalculateOffset(pageNumber, pageSize int32) int32 {
 	}
 	return (pageNumber - 1) * pageSize
 }
+
+func MapOrderDirection(input *string) string {
+	defaultDirection := "asc"
+	if input == nil {
+		return defaultDirection
+	}
+	if *input == "desc" {
+		return "desc"
+	}
+	return defaultDirection
+}
