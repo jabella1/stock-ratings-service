@@ -27,12 +27,12 @@ func (r *SqlcStockRatingRepository) GetStockRatingByTicker(ticker string) (*enti
 	return fromSqlcStockRatingToEntity(&stockRating)
 }
 
-func (sqlcRepository *SqlcStockRatingRepository) GetListStockRating(search *string, pageSize *int32, pageNumber *int32, orderBy *string, orderDirection *string) (*pagination.PaginatedList[entities.StockRating], error) {
+func (sqlcRepository *SqlcStockRatingRepository) GetListStockRating(search *string, pageSize *int32, pageNumber *int32, orderBy string, orderDirection string) (*pagination.PaginatedList[entities.StockRating], error) {
 	context := context.Background()
 	sqlcStockRatings, err := sqlcRepository.queries.ListStockRatings(context, sqlc.ListStockRatingsParams{
 		Column1: *search,
-		Column2: *orderBy,
-		Column3: *orderDirection,
+		Column2: orderBy,
+		Column3: orderDirection,
 		Column4: *pageSize,
 		Column5: utils.CalculateOffset(*pageNumber, *pageSize),
 	})

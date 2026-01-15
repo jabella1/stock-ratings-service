@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/jabella1/stock-ratings-service/internal/features/common/utils"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/dto"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/query"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/domain/pagination"
@@ -17,8 +18,23 @@ func CreateGetListStockRatingQueryHandler(stockRatingRepository repositories.Sto
 	}
 }
 
+var orderByMap = map[string]string{
+	"symbol":      "ticker",
+	"companyName": "company",
+	"broker":      "brokerage",
+	"actionType":  "action",
+	"ratingFrom":  "rating_from",
+	"ratingTo":    "rating_to",
+	"targetFrom":  "target_from",
+	"targetTo":    "target_to",
+	"createdAt":   "created_at",
+}
+
 func (h *GetListStockRatingQueryHandler) GetListStockRating(getListStockRatingQuery *query.GetListStockRatingQuery) (*query.GetListStockRatingResult, error) {
-	listStockRatings, err := h.stockRatingRepository.GetListStockRating(getListStockRatingQuery)
+	var orderBy = mapOrderBy(getListStockRatingQuery.OrderBy)
+	var orderDirection = utils.MapOrderDirection(getListStockRatingQuery.OrderDirection)
+	listStockRatings, err := h.stockRatingRepository.GetListStockRating(getListStockRatingQuery.Search,
+		getListStockRatingQuery.PageSize, getListStockRatingQuery.PageNumber, orderBy, orderDirection)
 	if err != nil {
 		return nil, err
 	}
@@ -42,4 +58,15 @@ func (h *GetListStockRatingQueryHandler) GetListStockRating(getListStockRatingQu
 		Metadata: pagination.CreatePaginationMetadata(*getListStockRatingQuery.PageNumber,
 			*getListStockRatingQuery.PageSize, listStockRatings.TotalRecords, int32(len(*listStockRatings.Results))),
 	}, nil
+}
+
+func mapOrderBy(input *string) string {
+	defaultField := "created_at"
+	if input == nil {
+		return defaultField
+	}
+	if value, exists := orderByMap[*input]; exists {
+		return value
+	}
+	return defaultField
 }
