@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/jabella1/stock-ratings-service/internal/features/common/utils"
-	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/query"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/domain/entities"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/domain/pagination"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/domain/repositories"
@@ -28,22 +27,27 @@ func (r *SqlcStockRatingRepository) GetStockRatingByTicker(ticker string) (*enti
 	return fromSqlcStockRatingToEntity(&stockRating)
 }
 
-func (r *SqlcStockRatingRepository) GetListStockRating(getListStockRatingQuery *query.GetListStockRatingQuery) (*pagination.PaginatedList[entities.StockRating], error) {
+func (sqlcRepository *SqlcStockRatingRepository) GetListStockRating(search *string, pageSize *int32, pageNumber *int32, orderBy *string, orderDirection *string) (*pagination.PaginatedList[entities.StockRating], error) {
 	context := context.Background()
-	sqlcStockRatings, err := r.queries.ListStockRatings(context, sqlc.ListStockRatingsParams{
-		Column1: *getListStockRatingQuery.Search,
-		Column2: *getListStockRatingQuery.OrderBy,
-		Column3: *getListStockRatingQuery.OrderDirection,
-		Column4: *getListStockRatingQuery.PageSize,
-		Column5: utils.CalculateOffset(*getListStockRatingQuery.PageNumber, *getListStockRatingQuery.PageSize),
+	sqlcStockRatings, err := sqlcRepository.queries.ListStockRatings(context, sqlc.ListStockRatingsParams{
+		Column1: *search,
+		Column2: *orderBy,
+		Column3: *orderDirection,
+		Column4: *pageSize,
+		Column5: utils.CalculateOffset(*pageNumber, *pageSize),
 	})
+
 	if err != nil {
 		return nil, err
 	}
 
-	totalRecords, err := r.queries.CountStockRatings(context,
-		*getListStockRatingQuery.Search,
+	totalRecords, err := sqlcRepository.queries.CountStockRatings(context,
+		*search,
 	)
+
+	if err != nil {
+		return nil, err
+	}
 
 	var stockRatings []entities.StockRating
 	for _, sqlcStockRating := range sqlcStockRatings {
