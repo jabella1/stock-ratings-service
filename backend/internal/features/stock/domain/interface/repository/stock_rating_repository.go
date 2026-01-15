@@ -1,4 +1,4 @@
-package repositories
+package repository
 
 import (
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/query"
