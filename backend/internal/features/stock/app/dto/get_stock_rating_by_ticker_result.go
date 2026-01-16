@@ -8,6 +8,6 @@ type GetStockRatingByTickerResult struct {
 	Action     *string
 	RatingFrom *string
 	RatingTo   *string
-	TargetFrom *float64
-	TargetTo   *float64
+	TargetFrom float64
+	TargetTo   float64
 }
