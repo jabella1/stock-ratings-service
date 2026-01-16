@@ -63,8 +63,8 @@ SELECT
 FROM challenge.stock_rating
 WHERE 
 ($1::text = '' OR 
-        (ticker IS NOT NULL AND ticker ILIKE '%' || $1::text || '%') OR
-        (company IS NOT NULL AND company ILIKE '%' || $1::text || '%') OR
+        (ticker ILIKE '%' || $1::text || '%') OR
+        (company ILIKE '%' || $1::text || '%') OR
         (brokerage IS NOT NULL AND brokerage ILIKE '%' || $1::text || '%') OR
         (action IS NOT NULL AND action ILIKE '%' || $1::text || '%') OR
         (rating_from IS NOT NULL AND rating_from ILIKE '%' || $1::text || '%') OR
@@ -74,6 +74,10 @@ ORDER BY
     CASE WHEN $2::text = 'ticker' AND $3::text = 'desc' THEN ticker END DESC,
     CASE WHEN $2::text = 'company' AND $3::text = 'asc' THEN company END ASC,
     CASE WHEN $2::text = 'company' AND $3::text = 'desc' THEN company END DESC,
+    CASE WHEN $2::text = 'rating_from' AND $3::text = 'asc' THEN rating_from END ASC,
+    CASE WHEN $2::text = 'rating_from' AND $3::text = 'desc' THEN rating_from END DESC,
+    CASE WHEN $2::text = 'rating_to' AND $3::text = 'asc' THEN rating_to END ASC,
+    CASE WHEN $2::text = 'rating_to' AND $3::text = 'desc' THEN rating_to END DESC,
     CASE WHEN $2::text = 'target_from' AND $3::text = 'asc' THEN target_from END ASC,
     CASE WHEN $2::text = 'target_from' AND $3::text = 'desc' THEN target_from END DESC,
     CASE WHEN $2::text = 'target_to' AND $3::text = 'asc' THEN target_to END ASC,
