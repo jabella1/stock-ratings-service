@@ -3,6 +3,8 @@ package entities
 import (
 	"errors"
 	"time"
+
+	valueobjects "github.com/jabella1/stock-ratings-service/internal/features/stock/domain/valueObjects"
 )
 
 type StockRating struct {
@@ -13,8 +15,8 @@ type StockRating struct {
 	action     *string
 	ratingFrom *string
 	ratingTo   *string
-	targetFrom *float64
-	targetTo   *float64
+	targetFrom valueobjects.Price
+	targetTo   valueobjects.Price
 	createdAt  time.Time
 }
 
@@ -26,6 +28,17 @@ func CreateStockRating(ticker, company string, brokerage, action, ratingFrom,
 	if err := validateEmptyString(company, "company"); err != nil {
 		return nil, err
 	}
+
+	targetFromVO, err := valueobjects.CreatePrice(targetFrom)
+	if err != nil {
+		return nil, err
+	}
+
+	targetToVO, err := valueobjects.CreatePrice(targetTo)
+	if err != nil {
+		return nil, err
+	}
+
 	return &StockRating{
 		ticker:     ticker,
 		company:    company,
@@ -33,8 +46,8 @@ func CreateStockRating(ticker, company string, brokerage, action, ratingFrom,
 		action:     action,
 		ratingFrom: ratingFrom,
 		ratingTo:   ratingTo,
-		targetFrom: targetFrom,
-		targetTo:   targetTo,
+		targetFrom: targetFromVO,
+		targetTo:   targetToVO,
 		createdAt:  time.Now(),
 	}, nil
 }
@@ -70,10 +83,10 @@ func (sr *StockRating) GetRatingTo() *string {
 	return sr.ratingTo
 }
 
-func (sr *StockRating) GetTargetFrom() *float64 {
-	return sr.targetFrom
+func (sr *StockRating) GetTargetFrom() float64 {
+	return sr.targetFrom.GetValue()
 }
 
-func (sr *StockRating) GetTargetTo() *float64 {
-	return sr.targetTo
+func (sr *StockRating) GetTargetTo() float64 {
+	return sr.targetTo.GetValue()
 }
