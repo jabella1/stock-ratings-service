@@ -25,13 +25,13 @@
             <tr class="bg-gray-50">
               <th 
                 class="py-2 px-4 border-b text-left cursor-pointer hover:bg-gray-100"
-                @click="sortBy('ticker')"
+                @click="sortBy('symbol')"
               >
                 <div class="flex items-center">
-                  Ticker
+                  Código
                   <span class="ml-1">
                     <svg
-                      v-if="filters.orderBy === 'ticker'"
+                      v-if="filters.orderBy === 'symbol'"
                       :class="{ 'rotate-180': filters.orderDirection === 'desc' }"
                       xmlns="http://www.w3.org/2000/svg"
                       class="h-4 w-4 text-gray-500 transition-transform"
@@ -46,13 +46,13 @@
               </th>
               <th 
                 class="py-2 px-4 border-b text-left cursor-pointer hover:bg-gray-100"
-                @click="sortBy('company')"
+                @click="sortBy('companyName')"
               >
                 <div class="flex items-center">
                   Empresa
                   <span class="ml-1">
                     <svg
-                      v-if="filters.orderBy === 'company'"
+                      v-if="filters.orderBy === 'companyName'"
                       :class="{ 'rotate-180': filters.orderDirection === 'desc' }"
                       xmlns="http://www.w3.org/2000/svg"
                       class="h-4 w-4 text-gray-500 transition-transform"
@@ -67,13 +67,13 @@
               </th>
               <th 
                 class="py-2 px-4 border-b text-left cursor-pointer hover:bg-gray-100"
-                @click="sortBy('action')"
+                @click="sortBy('actionType')"
               >
                 <div class="flex items-center">
                   Acción
                   <span class="ml-1">
                     <svg
-                      v-if="filters.orderBy === 'action'"
+                      v-if="filters.orderBy === 'actionType'"
                       :class="{ 'rotate-180': filters.orderDirection === 'desc' }"
                       xmlns="http://www.w3.org/2000/svg"
                       class="h-4 w-4 text-gray-500 transition-transform"
@@ -89,13 +89,13 @@
               
               <th 
                 class="py-2 px-4 border-b text-left cursor-pointer hover:bg-gray-100"
-                @click="sortBy('rating_to')"
+                @click="sortBy('ratingFrom')"
               >
                 <div class="flex items-center">
-                  Rating
+                  Recomendación
                   <span class="ml-1">
                     <svg
-                      v-if="filters.orderBy === 'rating_to'"
+                      v-if="filters.orderBy === 'ratingFrom'"
                       :class="{ 'rotate-180': filters.orderDirection === 'desc' }"
                       xmlns="http://www.w3.org/2000/svg"
                       class="h-4 w-4 text-gray-500 transition-transform"
@@ -111,13 +111,13 @@
               
               <th 
                 class="py-2 px-4 border-b text-left cursor-pointer hover:bg-gray-100"
-                @click="sortBy('target_to')"
+                @click="sortBy('targetFrom')"
               >
                 <div class="flex items-center">
-                  Target ($)
+                  Precio objetivo ($)
                   <span class="ml-1">
                     <svg
-                      v-if="filters.orderBy === 'target_to'"
+                      v-if="filters.orderBy === 'targetFrom'"
                       :class="{ 'rotate-180': filters.orderDirection === 'desc' }"
                       xmlns="http://www.w3.org/2000/svg"
                       class="h-4 w-4 text-gray-500 transition-transform"
