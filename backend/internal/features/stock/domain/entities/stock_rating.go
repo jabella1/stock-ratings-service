@@ -8,20 +8,23 @@ import (
 )
 
 type StockRating struct {
-	id         int64
-	ticker     string
-	company    string
-	brokerage  *string
-	action     *string
-	ratingFrom *string
-	ratingTo   *string
-	targetFrom valueobjects.Price
-	targetTo   valueobjects.Price
-	createdAt  time.Time
+	id           int64
+	ticker       string
+	company      string
+	brokerage    *string
+	action       *string
+	ratingFrom   *string
+	ratingTo     *string
+	targetFrom   valueobjects.Price
+	targetTo     valueobjects.Price
+	createdAt    time.Time
+	upside       float64
+	changeTarget float64
+	currentPrice float64
 }
 
 func CreateStockRating(ticker, company string, brokerage, action, ratingFrom,
-	ratingTo *string, targetFrom, targetTo *float64) (*StockRating, error) {
+	ratingTo *string, targetFrom, targetTo *float64, upside, changeTarget, currentPrice float64) (*StockRating, error) {
 	if err := validateEmptyString(ticker, "ticker"); err != nil {
 		return nil, err
 	}
@@ -40,15 +43,18 @@ func CreateStockRating(ticker, company string, brokerage, action, ratingFrom,
 	}
 
 	return &StockRating{
-		ticker:     ticker,
-		company:    company,
-		brokerage:  brokerage,
-		action:     action,
-		ratingFrom: ratingFrom,
-		ratingTo:   ratingTo,
-		targetFrom: targetFromVO,
-		targetTo:   targetToVO,
-		createdAt:  time.Now(),
+		ticker:       ticker,
+		company:      company,
+		brokerage:    brokerage,
+		action:       action,
+		ratingFrom:   ratingFrom,
+		ratingTo:     ratingTo,
+		targetFrom:   targetFromVO,
+		targetTo:     targetToVO,
+		createdAt:    time.Now(),
+		upside:       upside,
+		changeTarget: changeTarget,
+		currentPrice: currentPrice,
 	}, nil
 }
 
