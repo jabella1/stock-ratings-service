@@ -19,22 +19,25 @@ func CreateGetListStockRatingQueryHandler(stockRatingRepository repositories.Sto
 }
 
 var orderByMap = map[string]string{
-	"symbol":      "ticker",
-	"companyName": "company",
-	"broker":      "brokerage",
-	"actionType":  "action",
-	"ratingFrom":  "rating_from",
-	"ratingTo":    "rating_to",
-	"targetFrom":  "target_from",
-	"targetTo":    "target_to",
-	"createdAt":   "created_at",
+	"symbol":       "ticker",
+	"companyName":  "company",
+	"broker":       "brokerage",
+	"actionType":   "action",
+	"ratingFrom":   "rating_from",
+	"ratingTo":     "rating_to",
+	"targetFrom":   "target_from",
+	"targetTo":     "target_to",
+	"createdAt":    "created_at",
+	"upside":       "upside",
+	"currentPrice": "current_price",
 }
 
 func (h *GetListStockRatingQueryHandler) GetListStockRating(getListStockRatingQuery *query.GetListStockRatingQuery) (*query.GetListStockRatingResult, error) {
 	var orderBy = mapOrderBy(getListStockRatingQuery.OrderBy)
 	var orderDirection = utils.MapOrderDirection(getListStockRatingQuery.OrderDirection)
 	listStockRatings, err := h.stockRatingRepository.GetListStockRating(getListStockRatingQuery.Search,
-		getListStockRatingQuery.PageSize, getListStockRatingQuery.PageNumber, orderBy, orderDirection)
+		getListStockRatingQuery.PageSize, getListStockRatingQuery.PageNumber, orderBy, orderDirection,
+		getListStockRatingQuery.MinUpside, getListStockRatingQuery.MinPrice, getListStockRatingQuery.MaxPrice)
 	if err != nil {
 		return nil, err
 	}
@@ -42,14 +45,16 @@ func (h *GetListStockRatingQueryHandler) GetListStockRating(getListStockRatingQu
 	var resultList []dto.GetListStockRatingResult
 	for _, stockRating := range *listStockRatings.Results {
 		resultList = append(resultList, dto.GetListStockRatingResult{
-			Ticker:     stockRating.GetTicker(),
-			Company:    stockRating.GetCompany(),
-			Brokerage:  stockRating.GetBrokerage(),
-			Action:     stockRating.GetAction(),
-			RatingFrom: stockRating.GetRatingFrom(),
-			RatingTo:   stockRating.GetRatingTo(),
-			TargetFrom: stockRating.GetTargetFrom(),
-			TargetTo:   stockRating.GetTargetTo(),
+			Ticker:       stockRating.GetTicker(),
+			Company:      stockRating.GetCompany(),
+			Brokerage:    stockRating.GetBrokerage(),
+			Action:       stockRating.GetAction(),
+			RatingFrom:   stockRating.GetRatingFrom(),
+			RatingTo:     stockRating.GetRatingTo(),
+			TargetFrom:   stockRating.GetTargetFrom(),
+			TargetTo:     stockRating.GetTargetTo(),
+			Upside:       stockRating.GetUpside(),
+			CurrentPrice: stockRating.GetCurrentPrice(),
 		})
 	}
 

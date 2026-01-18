@@ -8,20 +8,23 @@ import (
 )
 
 type StockRating struct {
-	id         int64
-	ticker     string
-	company    string
-	brokerage  *string
-	action     *string
-	ratingFrom *string
-	ratingTo   *string
-	targetFrom valueobjects.Price
-	targetTo   valueobjects.Price
-	createdAt  time.Time
+	id           int64
+	ticker       string
+	company      string
+	brokerage    *string
+	action       *string
+	ratingFrom   *string
+	ratingTo     *string
+	targetFrom   valueobjects.Price
+	targetTo     valueobjects.Price
+	createdAt    time.Time
+	upside       float32
+	changeTarget float64
+	currentPrice valueobjects.Price
 }
 
 func CreateStockRating(ticker, company string, brokerage, action, ratingFrom,
-	ratingTo *string, targetFrom, targetTo *float64) (*StockRating, error) {
+	ratingTo *string, targetFrom, targetTo *float64, upside float32, changeTarget, currentPrice float64) (*StockRating, error) {
 	if err := validateEmptyString(ticker, "ticker"); err != nil {
 		return nil, err
 	}
@@ -39,16 +42,24 @@ func CreateStockRating(ticker, company string, brokerage, action, ratingFrom,
 		return nil, err
 	}
 
+	currenPriceVO, err := valueobjects.CreatePrice(&currentPrice)
+	if err != nil {
+		return nil, err
+	}
+
 	return &StockRating{
-		ticker:     ticker,
-		company:    company,
-		brokerage:  brokerage,
-		action:     action,
-		ratingFrom: ratingFrom,
-		ratingTo:   ratingTo,
-		targetFrom: targetFromVO,
-		targetTo:   targetToVO,
-		createdAt:  time.Now(),
+		ticker:       ticker,
+		company:      company,
+		brokerage:    brokerage,
+		action:       action,
+		ratingFrom:   ratingFrom,
+		ratingTo:     ratingTo,
+		targetFrom:   targetFromVO,
+		targetTo:     targetToVO,
+		createdAt:    time.Now(),
+		upside:       upside,
+		changeTarget: changeTarget,
+		currentPrice: currenPriceVO,
 	}, nil
 }
 
@@ -89,4 +100,12 @@ func (sr *StockRating) GetTargetFrom() float64 {
 
 func (sr *StockRating) GetTargetTo() float64 {
 	return sr.targetTo.GetValue()
+}
+
+func (sr *StockRating) GetUpside() float32 {
+	return sr.upside
+}
+
+func (sr *StockRating) GetCurrentPrice() float64 {
+	return sr.currentPrice.GetValue()
 }

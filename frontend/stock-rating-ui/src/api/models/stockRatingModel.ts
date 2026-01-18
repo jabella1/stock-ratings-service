@@ -7,6 +7,8 @@ export interface RatingItem {
   rating_to: string
   target_from: number
   target_to: number
+  upside: number
+  currentPrice: number
 }
 
 export interface ApiMetadata {
@@ -30,6 +32,9 @@ export interface FetchRatingsParams {
   pageNumber: number
   orderBy: string
   orderDirection: string
+  minUpside?: number | undefined
+  minPrice?: number  | undefined
+  maxPrice?: number  | undefined
 }
 
 export const DEFAULT_METADATA: ApiMetadata = {
