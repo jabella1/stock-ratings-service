@@ -9,14 +9,27 @@ import (
 )
 
 type ChallengeStockRating struct {
-	ID         int64              `json:"id"`
-	Ticker     string             `json:"ticker"`
-	Company    string             `json:"company"`
-	Brokerage  pgtype.Text        `json:"brokerage"`
-	Action     pgtype.Text        `json:"action"`
-	RatingFrom pgtype.Text        `json:"rating_from"`
-	RatingTo   pgtype.Text        `json:"rating_to"`
-	TargetFrom pgtype.Numeric     `json:"target_from"`
-	TargetTo   pgtype.Numeric     `json:"target_to"`
-	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	ID           int64              `json:"id"`
+	Ticker       string             `json:"ticker"`
+	Company      string             `json:"company"`
+	Brokerage    pgtype.Text        `json:"brokerage"`
+	Action       pgtype.Text        `json:"action"`
+	RatingFrom   pgtype.Text        `json:"rating_from"`
+	RatingTo     pgtype.Text        `json:"rating_to"`
+	TargetFrom   pgtype.Numeric     `json:"target_from"`
+	TargetTo     pgtype.Numeric     `json:"target_to"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	Upside       pgtype.Numeric     `json:"upside"`
+	ChangeTarget pgtype.Numeric     `json:"change_target"`
+	CurrentPrice pgtype.Numeric     `json:"current_price"`
+}
+
+type ChallengeStockRatingHistory struct {
+	ID              int64              `json:"id"`
+	StockRatingID   int64              `json:"stock_rating_id"`
+	Date            pgtype.Timestamptz `json:"date"`
+	OldCurrentPrice pgtype.Numeric     `json:"old_current_price"`
+	NewCurrentPrice pgtype.Numeric     `json:"new_current_price"`
+	OldUpside       pgtype.Numeric     `json:"old_upside"`
+	NewUpside       pgtype.Numeric     `json:"new_upside"`
 }

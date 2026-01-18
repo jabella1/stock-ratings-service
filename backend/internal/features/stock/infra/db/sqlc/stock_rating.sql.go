@@ -22,10 +22,25 @@ WHERE
             (action IS NOT NULL AND action ILIKE '%' || $1::text || '%') OR
             (rating_from IS NOT NULL AND rating_from ILIKE '%' || $1::text || '%') OR
             (rating_to IS NOT NULL AND rating_to ILIKE '%' || $1::text || '%'))
+AND ($2::numeric IS NULL OR $2::numeric = 0 OR upside >= $2)
+AND ($3::numeric IS NULL OR $3::numeric = 0 OR current_price >= $3)
+AND ($4::numeric IS NULL OR $4::numeric = 0 OR current_price <= $4)
 `
 
-func (q *Queries) CountStockRatings(ctx context.Context, dollar_1 string) (int64, error) {
-	row := q.db.QueryRow(ctx, countStockRatings, dollar_1)
+type CountStockRatingsParams struct {
+	Column1 string         `json:"column_1"`
+	Column2 pgtype.Numeric `json:"column_2"`
+	Column3 pgtype.Numeric `json:"column_3"`
+	Column4 pgtype.Numeric `json:"column_4"`
+}
+
+func (q *Queries) CountStockRatings(ctx context.Context, arg CountStockRatingsParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countStockRatings,
+		arg.Column1,
+		arg.Column2,
+		arg.Column3,
+		arg.Column4,
+	)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -33,7 +48,7 @@ func (q *Queries) CountStockRatings(ctx context.Context, dollar_1 string) (int64
 
 const getStockRatingByTicker = `-- name: GetStockRatingByTicker :one
 SELECT id, ticker, company, brokerage, action, rating_from, rating_to,
-       target_from, target_to, created_at
+       target_from, target_to, created_at, upside, change_target, current_price
 FROM challenge.stock_rating
 WHERE ticker = $1
 `
@@ -52,14 +67,47 @@ func (q *Queries) GetStockRatingByTicker(ctx context.Context, ticker string) (Ch
 		&i.TargetFrom,
 		&i.TargetTo,
 		&i.CreatedAt,
+		&i.Upside,
+		&i.ChangeTarget,
+		&i.CurrentPrice,
 	)
 	return i, err
+}
+
+const insertStockRatingHistory = `-- name: InsertStockRatingHistory :exec
+INSERT INTO challenge.stock_rating_history (
+    stock_rating_id,
+    date,
+    old_current_price,
+    new_current_price,
+    old_upside,
+    new_upside
+) VALUES ($1, NOW(), $2, $3, $4, $5)
+`
+
+type InsertStockRatingHistoryParams struct {
+	StockRatingID   int64          `json:"stock_rating_id"`
+	OldCurrentPrice pgtype.Numeric `json:"old_current_price"`
+	NewCurrentPrice pgtype.Numeric `json:"new_current_price"`
+	OldUpside       pgtype.Numeric `json:"old_upside"`
+	NewUpside       pgtype.Numeric `json:"new_upside"`
+}
+
+func (q *Queries) InsertStockRatingHistory(ctx context.Context, arg InsertStockRatingHistoryParams) error {
+	_, err := q.db.Exec(ctx, insertStockRatingHistory,
+		arg.StockRatingID,
+		arg.OldCurrentPrice,
+		arg.NewCurrentPrice,
+		arg.OldUpside,
+		arg.NewUpside,
+	)
+	return err
 }
 
 const listStockRatings = `-- name: ListStockRatings :many
 SELECT 
     id, ticker, company, brokerage, action, rating_from, rating_to,
-    target_from, target_to, created_at
+    target_from, target_to, created_at, upside, change_target, current_price
 FROM challenge.stock_rating
 WHERE 
 ($1::text = '' OR 
@@ -69,6 +117,9 @@ WHERE
         (action IS NOT NULL AND action ILIKE '%' || $1::text || '%') OR
         (rating_from IS NOT NULL AND rating_from ILIKE '%' || $1::text || '%') OR
         (rating_to IS NOT NULL AND rating_to ILIKE '%' || $1::text || '%'))
+AND ($6::numeric IS NULL OR $6::numeric = 0 OR upside >= $6)
+AND ($7::numeric IS NULL OR $7::numeric = 0 OR current_price >= $7)
+AND ($8::numeric IS NULL OR $8::numeric = 0 OR current_price <= $8)
 ORDER BY 
     CASE WHEN $2::text = 'ticker' AND $3::text = 'asc' THEN ticker END ASC,
     CASE WHEN $2::text = 'ticker' AND $3::text = 'desc' THEN ticker END DESC,
@@ -84,17 +135,26 @@ ORDER BY
     CASE WHEN $2::text = 'target_to' AND $3::text = 'desc' THEN target_to END DESC,
     CASE WHEN $2::text = 'created_at' AND $3::text = 'asc' THEN created_at END ASC,
     CASE WHEN $2::text = 'created_at' AND $3::text = 'desc' THEN created_at END DESC,
+    CASE WHEN $2::text = 'upside' AND $3::text = 'asc' THEN upside END ASC,
+    CASE WHEN $2::text = 'upside' AND $3::text = 'desc' THEN upside END DESC,
+    CASE WHEN $2::text = 'change_target' AND $3::text = 'asc' THEN change_target END ASC,
+    CASE WHEN $2::text = 'change_target' AND $3::text = 'desc' THEN change_target END DESC,
+    CASE WHEN $2::text = 'current_price' AND $3::text = 'asc' THEN current_price END ASC,
+    CASE WHEN $2::text = 'current_price' AND $3::text = 'desc' THEN current_price END DESC,
     id ASC
 LIMIT $4::int
 OFFSET $5::int
 `
 
 type ListStockRatingsParams struct {
-	Column1 string `json:"column_1"`
-	Column2 string `json:"column_2"`
-	Column3 string `json:"column_3"`
-	Column4 int32  `json:"column_4"`
-	Column5 int32  `json:"column_5"`
+	Column1 string         `json:"column_1"`
+	Column2 string         `json:"column_2"`
+	Column3 string         `json:"column_3"`
+	Column4 int32          `json:"column_4"`
+	Column5 int32          `json:"column_5"`
+	Column6 pgtype.Numeric `json:"column_6"`
+	Column7 pgtype.Numeric `json:"column_7"`
+	Column8 pgtype.Numeric `json:"column_8"`
 }
 
 func (q *Queries) ListStockRatings(ctx context.Context, arg ListStockRatingsParams) ([]ChallengeStockRating, error) {
@@ -104,6 +164,9 @@ func (q *Queries) ListStockRatings(ctx context.Context, arg ListStockRatingsPara
 		arg.Column3,
 		arg.Column4,
 		arg.Column5,
+		arg.Column6,
+		arg.Column7,
+		arg.Column8,
 	)
 	if err != nil {
 		return nil, err
@@ -123,6 +186,9 @@ func (q *Queries) ListStockRatings(ctx context.Context, arg ListStockRatingsPara
 			&i.TargetFrom,
 			&i.TargetTo,
 			&i.CreatedAt,
+			&i.Upside,
+			&i.ChangeTarget,
+			&i.CurrentPrice,
 		); err != nil {
 			return nil, err
 		}
@@ -137,9 +203,9 @@ func (q *Queries) ListStockRatings(ctx context.Context, arg ListStockRatingsPara
 const upsertStockRating = `-- name: UpsertStockRating :exec
 INSERT INTO challenge.stock_rating (
     ticker, company, brokerage, action, rating_from, rating_to,
-    target_from, target_to
+    target_from, target_to, upside, change_target, current_price
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
 )
 ON CONFLICT (ticker) DO UPDATE SET
     company = EXCLUDED.company,
@@ -148,18 +214,24 @@ ON CONFLICT (ticker) DO UPDATE SET
     rating_from = EXCLUDED.rating_from,
     rating_to = EXCLUDED.rating_to,
     target_from = EXCLUDED.target_from,
-    target_to = EXCLUDED.target_to
+    target_to = EXCLUDED.target_to,
+    current_price = EXCLUDED.current_price,
+    upside = EXCLUDED.upside,
+    change_target = EXCLUDED.change_target
 `
 
 type UpsertStockRatingParams struct {
-	Ticker     string         `json:"ticker"`
-	Company    string         `json:"company"`
-	Brokerage  pgtype.Text    `json:"brokerage"`
-	Action     pgtype.Text    `json:"action"`
-	RatingFrom pgtype.Text    `json:"rating_from"`
-	RatingTo   pgtype.Text    `json:"rating_to"`
-	TargetFrom pgtype.Numeric `json:"target_from"`
-	TargetTo   pgtype.Numeric `json:"target_to"`
+	Ticker       string         `json:"ticker"`
+	Company      string         `json:"company"`
+	Brokerage    pgtype.Text    `json:"brokerage"`
+	Action       pgtype.Text    `json:"action"`
+	RatingFrom   pgtype.Text    `json:"rating_from"`
+	RatingTo     pgtype.Text    `json:"rating_to"`
+	TargetFrom   pgtype.Numeric `json:"target_from"`
+	TargetTo     pgtype.Numeric `json:"target_to"`
+	Upside       pgtype.Numeric `json:"upside"`
+	ChangeTarget pgtype.Numeric `json:"change_target"`
+	CurrentPrice pgtype.Numeric `json:"current_price"`
 }
 
 func (q *Queries) UpsertStockRating(ctx context.Context, arg UpsertStockRatingParams) error {
@@ -172,6 +244,9 @@ func (q *Queries) UpsertStockRating(ctx context.Context, arg UpsertStockRatingPa
 		arg.RatingTo,
 		arg.TargetFrom,
 		arg.TargetTo,
+		arg.Upside,
+		arg.ChangeTarget,
+		arg.CurrentPrice,
 	)
 	return err
 }
