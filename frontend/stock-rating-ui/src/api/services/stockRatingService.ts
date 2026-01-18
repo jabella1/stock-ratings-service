@@ -12,7 +12,10 @@ export async function fetchListStockRating(params: FetchRatingsParams): Promise<
       pageSize: params.pageSize,
       pageNumber: params.pageNumber,
       orderBy: params.orderBy,
-      orderDirection: params.orderDirection
+      orderDirection: params.orderDirection,
+      minUpside:  params.minUpside,
+      minPrice: params.minPrice,
+      maxPrice: params.maxPrice
     })
   })
 
