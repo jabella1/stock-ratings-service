@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -49,9 +50,9 @@ func main() {
 	queries := postgres.NewQueries(connection)
 	var next_page *string
 	baseUrlEnv := "CONNECTION_KARENAI_BASEURL"
-	baseUrl := validateEmptyString(os.Getenv(baseUrlEnv), baseUrlEnv)
+	baseUrl := utils.ValidateEmptyString(os.Getenv(baseUrlEnv), baseUrlEnv)
 	endpointSwechallengeEnv := "CONNECTION_KARENAI_ENDPOINTS_SWECHALLENGE"
-	endpointsSwechallenge := validateEmptyString(os.Getenv(endpointSwechallengeEnv), endpointSwechallengeEnv)
+	endpointsSwechallenge := utils.ValidateEmptyString(os.Getenv(endpointSwechallengeEnv), endpointSwechallengeEnv)
 	url := baseUrl + endpointsSwechallenge
 	for {
 		var requestURL string
@@ -65,7 +66,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Failed to create request:", err)
 		}
-		request.Header.Set("Authorization", "Bearer "+validateEmptyString(os.Getenv("CONNECTION_KARENAI_TOKEN"), "CONNECTION_KARENAI_TOKEN"))
+		request.Header.Set("Authorization", "Bearer "+utils.ValidateEmptyString(os.Getenv("CONNECTION_KARENAI_TOKEN"), "CONNECTION_KARENAI_TOKEN"))
 		response, err := http.DefaultClient.Do(request)
 		if err != nil {
 			log.Fatal("Failed to perform request:", err)
@@ -75,17 +76,39 @@ func main() {
 		if err := json.NewDecoder(response.Body).Decode(&apiResponse); err != nil {
 			log.Fatal("Failed to decode response:", err)
 		}
+		yahooFinanceBaseURL := utils.ValidateEmptyString(os.Getenv("CONNECTION_YAHOO_FINANCE_BASEURL"), "YAHOO_FINANCE_BASEURL")
+		interval := utils.ValidateEmptyString(os.Getenv("CONNECTION_YAHOO_FINANCE_INTERVAL"), "YAHOO_FINANCE_INTERVAL")
+		rangeVal := utils.ValidateEmptyString(os.Getenv("CONNECTION_YAHOO_FINANCE_RANGE"), "YAHOO_FINANCE_RANGE")
 
 		for _, item := range apiResponse.Items {
-			err := queries.UpsertStockRating(context, sqlc.UpsertStockRatingParams{
-				Ticker:     item.Ticker,
-				Company:    item.Company,
-				Brokerage:  item.Brokerage,
-				Action:     item.Action,
-				RatingFrom: item.RatingFrom,
-				RatingTo:   item.RatingTo,
-				TargetFrom: utils.NumericFromString(item.TargetFrom),
-				TargetTo:   utils.NumericFromString(item.TargetTo),
+			targetFromNumeric := utils.NumericFromString(item.TargetFrom)
+			targetToNumeric := utils.NumericFromString(item.TargetTo)
+			targetFromMapped := utils.Float64FromNumeric(targetFromNumeric)
+			var targetToMapped = utils.Float64FromNumeric(targetToNumeric)
+			currentPrice := GetOrFetchCurrentPrice(item.Ticker, yahooFinanceBaseURL, interval, rangeVal)
+			upside := utils.CalculatePercentageChange(
+				&currentPrice,
+				targetToMapped,
+			)
+			changeTarget := utils.CalculatePercentageChange(
+				targetFromMapped,
+				targetToMapped,
+			)
+			stockRating, _ := queries.GetStockRatingByTicker(context, item.Ticker)
+			CheckAndInsertHistory(context, queries, &stockRating, currentPrice, upside)
+
+			err = queries.UpsertStockRating(context, sqlc.UpsertStockRatingParams{
+				Ticker:       item.Ticker,
+				Company:      item.Company,
+				Brokerage:    item.Brokerage,
+				Action:       item.Action,
+				RatingFrom:   item.RatingFrom,
+				RatingTo:     item.RatingTo,
+				TargetFrom:   targetFromNumeric,
+				TargetTo:     targetToNumeric,
+				Upside:       utils.NumericFromFloat64(upside),
+				CurrentPrice: utils.NumericFromFloat64(currentPrice),
+				ChangeTarget: utils.NumericFromFloat64(changeTarget),
 			})
 
 			if err != nil {
@@ -100,9 +123,73 @@ func main() {
 	}
 }
 
-func validateEmptyString(stringToValidate string, fieldName string) string {
-	if stringToValidate == "" {
-		log.Fatal(fieldName + " is required")
+func GetOrFetchCurrentPrice(ticker string, yahooFinanceBaseURL, interval, rangeVal string) float64 {
+	price, err := getCurrentPrice(ticker, yahooFinanceBaseURL, interval, rangeVal)
+	if err != nil {
+		log.Printf("Warning: using fallback price for %s", ticker)
+		return 0
+	} else {
+		log.Printf("Current price for %s: %.4f", ticker, price)
 	}
-	return stringToValidate
+	return price
+}
+
+func getCurrentPrice(ticker string, yahooFinanceBaseURL, interval, rangeVal string) (float64, error) {
+	url := fmt.Sprintf(
+		"%s/%s?interval=%s&range=%s",
+		yahooFinanceBaseURL,
+		ticker,
+		interval,
+		rangeVal,
+	)
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("User-Agent", "Mozilla/5.0")
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return 0, err
+	}
+	defer resp.Body.Close()
+	var result struct {
+		Chart struct {
+			Result []struct {
+				Meta struct {
+					RegularMarketPrice float64 `json:"regularMarketPrice"`
+				} `json:"meta"`
+			} `json:"result"`
+		} `json:"chart"`
+	}
+	json.NewDecoder(resp.Body).Decode(&result)
+
+	if len(result.Chart.Result) == 0 {
+		return 0, fmt.Errorf("no hay datos para %s", ticker)
+	}
+
+	return result.Chart.Result[0].Meta.RegularMarketPrice, nil
+}
+
+func CheckAndInsertHistory(context context.Context, queries *sqlc.Queries, stockRating *sqlc.ChallengeStockRating, currentPrice, upside float64) {
+	if stockRating == nil {
+		return
+	}
+
+	priceChanged := stockRating.CurrentPrice != utils.NumericFromFloat64(currentPrice)
+	upsideChanged := stockRating.Upside != utils.NumericFromFloat64(upside)
+
+	if priceChanged || upsideChanged {
+		oldPrice := utils.Float64FromNumeric(stockRating.CurrentPrice)
+		oldUpside := utils.Float64FromNumeric(stockRating.Upside)
+
+		err := queries.InsertStockRatingHistory(context, sqlc.InsertStockRatingHistoryParams{
+			StockRatingID:   stockRating.ID,
+			OldCurrentPrice: utils.NumericFromFloat64(*oldPrice),
+			NewCurrentPrice: utils.NumericFromFloat64(currentPrice),
+			OldUpside:       utils.NumericFromFloat64(*oldUpside),
+			NewUpside:       utils.NumericFromFloat64(upside),
+		})
+		if err != nil {
+			log.Printf("Error inserting history for %s: %v", stockRating.Ticker, err)
+		}
+	}
 }
