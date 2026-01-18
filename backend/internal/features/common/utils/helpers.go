@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -79,4 +80,11 @@ func MapOrderDirection(input *string) string {
 		return "desc"
 	}
 	return defaultDirection
+}
+
+func ValidateEmptyString(stringToValidate string, fieldName string) string {
+	if stringToValidate == "" {
+		log.Fatal(fieldName + " is required")
+	}
+	return stringToValidate
 }
