@@ -74,5 +74,8 @@ func fromSqlcStockRatingToEntity(sqlcStockRating *sqlc.ChallengeStockRating) (*e
 		&sqlcStockRating.RatingTo.String,
 		utils.Float64FromNumeric(sqlcStockRating.TargetFrom),
 		utils.Float64FromNumeric(sqlcStockRating.TargetTo),
+		*utils.Float64FromNumeric(sqlcStockRating.Upside),
+		*utils.Float64FromNumeric(sqlcStockRating.ChangeTarget),
+		*utils.Float64FromNumeric(sqlcStockRating.CurrentPrice),
 	)
 }
