@@ -7,6 +7,7 @@ import (
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/interfaces"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/query"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/domain/pagination"
+	"github.com/jabella1/stock-ratings-service/internal/features/stock/interface/api/rest/request"
 	"github.com/labstack/echo/v4"
 )
 
@@ -46,12 +47,41 @@ func (c *StockRatingController) GetStockRatingByTicker(context echo.Context) err
 }
 
 func (c *StockRatingController) GetListStockRating(context echo.Context) error {
-	getListStockRatingQuery := &query.GetListStockRatingQuery{}
-	if err := context.Bind(getListStockRatingQuery); err != nil {
+	getListStockRatingRequest := &request.GetListStockRatingRequest{}
+	if err := context.Bind(getListStockRatingRequest); err != nil {
 		return context.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request body"})
 	}
-	getListStockRatingQuery.PageSize = guard.NonNegativeOrDefaultPtr(getListStockRatingQuery.PageSize, pagination.DefaultPageSize)
-	getListStockRatingQuery.PageNumber = guard.NonNegativeOrDefaultPtr(getListStockRatingQuery.PageNumber, pagination.DefaultPageNumber)
+	var minUpside float32
+	var minPrice, maxPrice float64
+
+	getListStockRatingRequest.PageSize = guard.NonNegativeOrDefaultPtr(getListStockRatingRequest.PageSize, pagination.DefaultPageSize)
+	getListStockRatingRequest.PageNumber = guard.NonNegativeOrDefaultPtr(getListStockRatingRequest.PageNumber, pagination.DefaultPageNumber)
+
+	minUpside, err := guard.NonNegative(getListStockRatingRequest.MinUpside)
+	if err != nil {
+		return context.JSON(http.StatusBadRequest, map[string]string{"error": "parameter minUpside Cant'be negative"})
+	}
+
+	minPrice, err = guard.NonNegative(getListStockRatingRequest.MinPrice)
+	if err != nil {
+		return context.JSON(http.StatusBadRequest, map[string]string{"error": "parameter minPrice Cant'be negative"})
+	}
+	maxPrice, err = guard.NonNegative(getListStockRatingRequest.MaxPrice)
+	if err != nil {
+		return context.JSON(http.StatusBadRequest, map[string]string{"error": "parameter maxPrice Cant'be negative"})
+	}
+
+	getListStockRatingQuery := &query.GetListStockRatingQuery{
+		Search:         getListStockRatingRequest.Search,
+		PageSize:       getListStockRatingRequest.PageSize,
+		PageNumber:     getListStockRatingRequest.PageNumber,
+		OrderBy:        getListStockRatingRequest.OrderBy,
+		OrderDirection: getListStockRatingRequest.OrderDirection,
+		MinUpside:      minUpside,
+		MinPrice:       minPrice,
+		MaxPrice:       maxPrice,
+	}
+
 	result, err := c.getListStockRatingQueryHandler.GetListStockRating(getListStockRatingQuery)
 	if err != nil {
 		return context.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
