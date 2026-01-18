@@ -18,13 +18,13 @@ type StockRating struct {
 	targetFrom   valueobjects.Price
 	targetTo     valueobjects.Price
 	createdAt    time.Time
-	upside       float64
+	upside       float32
 	changeTarget float64
-	currentPrice float64
+	currentPrice valueobjects.Price
 }
 
 func CreateStockRating(ticker, company string, brokerage, action, ratingFrom,
-	ratingTo *string, targetFrom, targetTo *float64, upside, changeTarget, currentPrice float64) (*StockRating, error) {
+	ratingTo *string, targetFrom, targetTo *float64, upside float32, changeTarget, currentPrice float64) (*StockRating, error) {
 	if err := validateEmptyString(ticker, "ticker"); err != nil {
 		return nil, err
 	}
@@ -42,6 +42,11 @@ func CreateStockRating(ticker, company string, brokerage, action, ratingFrom,
 		return nil, err
 	}
 
+	currenPriceVO, err := valueobjects.CreatePrice(&currentPrice)
+	if err != nil {
+		return nil, err
+	}
+
 	return &StockRating{
 		ticker:       ticker,
 		company:      company,
@@ -54,7 +59,7 @@ func CreateStockRating(ticker, company string, brokerage, action, ratingFrom,
 		createdAt:    time.Now(),
 		upside:       upside,
 		changeTarget: changeTarget,
-		currentPrice: currentPrice,
+		currentPrice: currenPriceVO,
 	}, nil
 }
 
@@ -95,4 +100,12 @@ func (sr *StockRating) GetTargetFrom() float64 {
 
 func (sr *StockRating) GetTargetTo() float64 {
 	return sr.targetTo.GetValue()
+}
+
+func (sr *StockRating) GetUpside() float32 {
+	return sr.upside
+}
+
+func (sr *StockRating) GetCurrentPrice() float64 {
+	return sr.currentPrice.GetValue()
 }
