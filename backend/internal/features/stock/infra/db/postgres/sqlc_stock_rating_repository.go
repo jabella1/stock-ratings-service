@@ -27,7 +27,8 @@ func (r *SqlcStockRatingRepository) GetStockRatingByTicker(ticker string) (*enti
 	return fromSqlcStockRatingToEntity(&stockRating)
 }
 
-func (sqlcRepository *SqlcStockRatingRepository) GetListStockRating(search *string, pageSize *int32, pageNumber *int32, orderBy string, orderDirection string) (*pagination.PaginatedList[entities.StockRating], error) {
+func (sqlcRepository *SqlcStockRatingRepository) GetListStockRating(search *string, pageSize *int32, pageNumber *int32, orderBy string, orderDirection string,
+	minUpside float32, minPrice, maxPrice float64) (*pagination.PaginatedList[entities.StockRating], error) {
 	context := context.Background()
 	sqlcStockRatings, err := sqlcRepository.queries.ListStockRatings(context, sqlc.ListStockRatingsParams{
 		Column1: *search,
@@ -35,15 +36,21 @@ func (sqlcRepository *SqlcStockRatingRepository) GetListStockRating(search *stri
 		Column3: orderDirection,
 		Column4: *pageSize,
 		Column5: utils.CalculateOffset(*pageNumber, *pageSize),
+		Column6: utils.NumericFromFloat64(float64(minUpside)),
+		Column7: utils.NumericFromFloat64(minPrice),
+		Column8: utils.NumericFromFloat64(maxPrice),
 	})
 
 	if err != nil {
 		return nil, err
 	}
 
-	totalRecords, err := sqlcRepository.queries.CountStockRatings(context,
-		*search,
-	)
+	totalRecords, err := sqlcRepository.queries.CountStockRatings(context, sqlc.CountStockRatingsParams{
+		Column1: *search,
+		Column2: utils.NumericFromFloat64(float64(minUpside)),
+		Column3: utils.NumericFromFloat64(minPrice),
+		Column4: utils.NumericFromFloat64(maxPrice),
+	})
 
 	if err != nil {
 		return nil, err
@@ -74,7 +81,7 @@ func fromSqlcStockRatingToEntity(sqlcStockRating *sqlc.ChallengeStockRating) (*e
 		&sqlcStockRating.RatingTo.String,
 		utils.Float64FromNumeric(sqlcStockRating.TargetFrom),
 		utils.Float64FromNumeric(sqlcStockRating.TargetTo),
-		*utils.Float64FromNumeric(sqlcStockRating.Upside),
+		float32(*utils.Float64FromNumeric(sqlcStockRating.Upside)),
 		*utils.Float64FromNumeric(sqlcStockRating.ChangeTarget),
 		*utils.Float64FromNumeric(sqlcStockRating.CurrentPrice),
 	)
