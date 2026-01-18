@@ -1,190 +1,137 @@
 <template>
-  <div class="p-4 max-w-6xl mx-auto">
-    <h1 class="text-2xl font-bold mb-6">Listado de acciones</h1>
+  <div class="p-6 max-w-6xl mx-auto">
+    <div class="relative bg-white border border-gray-200 rounded-xl shadow-sm p-6">
 
-    <div class="mb-6 p-4 bg-gray-50 rounded-lg">
-      <label class="block text-sm font-medium mb-1">Buscar</label>
-      <input
-        v-model="filters.search"
-        type="text"
-        placeholder="Ej: AAPL, Apple"
-        class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-        @input="debouncedFetch"
-      />
-    </div>
-
-    <div v-if="loading" class="text-center py-8">
-      <div class="inline-block animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
-      <span class="ml-2">Cargando...</span>
-    </div>
-
-    <div v-else>
-      <div class="overflow-x-auto">
-        <table class="min-w-full bg-white border border-gray-200">
-          <thead>
-            <tr class="bg-gray-50">
-              <th 
-                class="py-2 px-4 border-b text-left cursor-pointer hover:bg-gray-100"
-                @click="sortBy('symbol')"
-              >
-                <div class="flex items-center">
-                  Código
-                  <span class="ml-1">
-                    <svg
-                      v-if="filters.orderBy === 'symbol'"
-                      :class="{ 'rotate-180': filters.orderDirection === 'desc' }"
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-4 w-4 text-gray-500 transition-transform"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                    </svg>
-                  </span>
-                </div>
-              </th>
-              <th 
-                class="py-2 px-4 border-b text-left cursor-pointer hover:bg-gray-100"
-                @click="sortBy('companyName')"
-              >
-                <div class="flex items-center">
-                  Empresa
-                  <span class="ml-1">
-                    <svg
-                      v-if="filters.orderBy === 'companyName'"
-                      :class="{ 'rotate-180': filters.orderDirection === 'desc' }"
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-4 w-4 text-gray-500 transition-transform"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                    </svg>
-                  </span>
-                </div>
-              </th>
-              <th 
-                class="py-2 px-4 border-b text-left cursor-pointer hover:bg-gray-100"
-                @click="sortBy('actionType')"
-              >
-                <div class="flex items-center">
-                  Acción
-                  <span class="ml-1">
-                    <svg
-                      v-if="filters.orderBy === 'actionType'"
-                      :class="{ 'rotate-180': filters.orderDirection === 'desc' }"
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-4 w-4 text-gray-500 transition-transform"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                    </svg>
-                  </span>
-                </div>
-              </th>
-              
-              <th 
-                class="py-2 px-4 border-b text-left cursor-pointer hover:bg-gray-100"
-                @click="sortBy('ratingFrom')"
-              >
-                <div class="flex items-center">
-                  Recomendación
-                  <span class="ml-1">
-                    <svg
-                      v-if="filters.orderBy === 'ratingFrom'"
-                      :class="{ 'rotate-180': filters.orderDirection === 'desc' }"
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-4 w-4 text-gray-500 transition-transform"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                    </svg>
-                  </span>
-                </div>
-              </th>
-              
-              <th 
-                class="py-2 px-4 border-b text-left cursor-pointer hover:bg-gray-100"
-                @click="sortBy('targetFrom')"
-              >
-                <div class="flex items-center">
-                  Precio objetivo ($)
-                  <span class="ml-1">
-                    <svg
-                      v-if="filters.orderBy === 'targetFrom'"
-                      :class="{ 'rotate-180': filters.orderDirection === 'desc' }"
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-4 w-4 text-gray-500 transition-transform"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                    </svg>
-                  </span>
-                </div>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(item, index) in apiData.Results" :key="index">
-              <td class="py-2 px-4 border-b font-mono">{{ item.ticker }}</td>
-              <td class="py-2 px-4 border-b">{{ item.company }}</td>
-              <td class="py-2 px-4 border-b text-sm">{{ item.action }}</td>
-              <td class="py-2 px-4 border-b">
-                {{ item.rating_from }} → {{ item.rating_to }}
-              </td>
-              <td class="py-2 px-4 border-b">
-                {{ item.target_from }} → {{ item.target_to }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="mb-6">
+        <h1 class="text-2xl font-semibold text-gray-800">Listado de acciones</h1>
+        <p class="text-sm text-gray-500">Recomendaciones y precios objetivo de analistas</p>
       </div>
 
-      <div v-if="apiData.Results.length === 0" class="text-center py-4 text-gray-500">
-        No se encontraron resultados.
-      </div>
 
-      <div class="flex flex-wrap items-center gap-2 mt-4">
-        <span class="text-sm text-gray-600">Mostrar:</span>
-        <div class="flex border rounded overflow-hidden">
-          <button
-            v-for="size in [5, 10, 25]"
-            :key="size"
-            @click="setPageSize(size)"
-            :class="[
-              'px-2 py-1 text-xs',
-              filters.pageSize === size
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-            ]"
-          >
-            {{ size }}
-          </button>
+      <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+          <input
+            v-model="filters.search"
+            type="text"
+            placeholder="Ej: AAPL, Apple"
+            class="w-full pl-3 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+            @input="debouncedFetch"
+          />
         </div>
 
-        <div v-if="apiData.Metadata.totalPages > 1" class="ml-auto flex items-center space-x-2">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Upside mínimo (%)</label>
+          <input
+            v-model.number="minUpside"
+            type="number"
+            placeholder="Ej: 20"
+            class="w-full pl-3 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+          />
+          <p class="text-red-500 text-xs mt-1">
+            {{ errors.minUpside }}
+          </p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Precio actual ($)</label>
+          <div class="flex gap-2">
+
+            <div class="flex flex-col w-1/2">
+              <input
+                v-model.number="minPrice"
+                type="number"
+                placeholder="Mínimo"
+                class="block pl-3 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              />
+              <p class="text-red-500 text-xs mt-1">
+                {{ errors.minPrice }}
+              </p>
+            </div>
+            <div class="flex flex-col w-1/2">
+              <input
+                v-model.number="maxPrice"
+                type="number"
+                placeholder="Máximo"
+                class="block pl-3 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              />
+              <p class="text-red-500 text-xs mt-1">
+                {{ errors.maxPrice }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="loading" class="absolute inset-0 bg-white/70 flex items-center justify-center z-20 rounded-xl">
+        <div class="flex items-center gap-2">
+          <div class="animate-spin rounded-full h-6 w-6 border-2 border-blue-500 border-t-transparent"></div>
+          <span class="text-sm text-gray-600">Cargando datos...</span>
+        </div>
+      </div>
+
+      <BaseTable
+        :columns="columns"
+        :rows="apiData.Results"
+        :order-by="filters.orderBy"
+        :order-direction="filters.orderDirection"
+        @sort="store.sortBy"
+      >
+        <template #row="{ row }">
+          <td class="px-4 py-3 border-b font-mono">{{ row.ticker }}</td>
+          <td class="px-4 py-3 border-b">{{ row.company }}</td>
+          <td class="px-4 py-3 border-b">{{ row.action }}</td>
+          <td class="px-4 py-3 border-b">
+            <span class="px-2 py-1 rounded-full text-xs">{{ row.rating_from }} → {{ row.rating_to }}</span>
+          </td>
+          <td class="px-4 py-3 border-b">{{ row.target_from }} → {{ row.target_to }}</td>
+          <td class="px-4 py-3 border-b">{{ row.currentPrice }}</td>
+          <td class="px-4 py-3 border-b">{{ row.upside }}%</td>
+        </template>
+      </BaseTable>
+
+      <div class="mt-6 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-gray-600">Mostrar:</span>
+          <div class="flex border rounded-lg overflow-hidden">
+            <button
+              v-for="size in [5, 10, 25]"
+              :key="size"
+              @click="store.setPageSize(size)"
+              :class="[
+                'px-3 py-1.5 text-sm transition',
+                filters.pageSize === size
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-100'
+              ]"
+            >
+              {{ size }}
+            </button>
+          </div>
+        </div>
+
+        <div v-if="apiData.Metadata.totalPages > 1" class="flex items-center gap-2">
           <button
             :disabled="!apiData.Metadata.canGoBack"
-            @click="goToPage(apiData.Metadata.pageNumber - 1)"
-            class="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm"
+            @click="store.goToPage(apiData.Metadata.pageNumber - 1)"
+            class="px-3 py-1.5 border rounded-md text-sm
+                   disabled:opacity-50 disabled:cursor-not-allowed
+                   hover:bg-gray-100"
           >
             Anterior
           </button>
-          <span class="px-2 py-1 text-sm">
+
+          <span class="text-sm text-gray-600">
             Página {{ apiData.Metadata.pageNumber }} de {{ apiData.Metadata.totalPages }}
           </span>
+
           <button
             :disabled="!apiData.Metadata.canGoForward"
-            @click="goToPage(apiData.Metadata.pageNumber + 1)"
-            class="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-sm"
+            @click="store.goToPage(apiData.Metadata.pageNumber + 1)"
+            class="px-3 py-1.5 border rounded-md text-sm
+                   disabled:opacity-50 disabled:cursor-not-allowed
+                   hover:bg-gray-100"
           >
             Siguiente
           </button>
@@ -195,90 +142,111 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { type PaginatedApiResponse, type FetchRatingsParams, DEFAULT_METADATA } from '@/api/models/stockRatingModel'
-import { fetchListStockRating } from '@/api/services/stockRatingService'
+import { onMounted, ref, watch } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useStockRatingStore } from '@/stores/useStockRatingStore'
+import BaseTable from '@/components/BaseTable.vue'
+import { useForm, useField } from 'vee-validate'
+import * as yup from 'yup'
 
-const filters = ref<FetchRatingsParams>({
-  search: '',
-  pageNumber: 1,
-  pageSize: 10,
-  orderBy: '', 
-  orderDirection: ''
-})
+const store = useStockRatingStore()
+const { filters, apiData, loading } = storeToRefs(store)
 
-const apiData = ref<PaginatedApiResponse>({
-  Results: [],
-  Metadata: {
-    pageNumber: 1,
-    totalPages: 0,
-    pageSize: 10,
-    totalRecords: 0,
-    recordsReturnedInPage: 0,
-    canGoBack: false,
-    canGoForward: false
-  }
-})
+const columns = [
+  { key: 'symbol', label: 'Código' },
+  { key: 'companyName', label: 'Empresa' },
+  { key: 'actionType', label: 'Acción' },
+  { key: 'ratingFrom', label: 'Recomendación' },
+  { key: 'targetFrom', label: 'Precio objetivo ($)' },
+  { key: 'currentPrice', label: 'Precio actual ($)' },
+  { key: 'upside', label: 'Upside (%)' }
+]
 
-const loading = ref(false)
 let debounceTimer: number | null = null
-
 const debouncedFetch = () => {
   if (debounceTimer) clearTimeout(debounceTimer)
   debounceTimer = window.setTimeout(() => {
-    filters.value.pageNumber = 1
-    fetchData()
+    store.fetch()
   }, 300)
 }
 
-function setPageSize(size: number) {
-  filters.value.pageSize = size
-  filters.value.pageNumber = 1
-  fetchData()
-}
+const numberOrNull = () =>
+yup
+  .number()
+  .transform((value, originalValue) =>
+    originalValue === '' || Number.isNaN(value) ? null : value
+  )
+  .nullable()
 
-function sortBy(column: string) {
-  if (filters.value.orderBy === column) {
-    filters.value.orderDirection = filters.value.orderDirection === 'asc' ? 'desc' : 'asc'
-  } else {
-    filters.value.orderBy = column
-    filters.value.orderDirection = 'asc'
-  }
-  filters.value.pageNumber = 1
-  fetchData()
-}
-
-async function fetchData() {
-  loading.value = true
-  try {
-    const result = await fetchListStockRating(filters.value)
-    apiData.value = {
-      Results: Array.isArray(result.Results) ? result.Results : [],
-      Metadata: result.Metadata || {
-        pageNumber: 1,
-        totalPages: 0,
-        pageSize: filters.value.pageSize,
-        totalRecords: 0,
-        recordsReturnedInPage: 0,
-        canGoBack: false,
-        canGoForward: false
-      }
-    }
-  } catch (err) {
-    console.error('Error:', err)
-    apiData.value.Results = []
-    apiData.value.Metadata = { ...DEFAULT_METADATA }
-  } finally {
-    loading.value = false
-  }
-}
-
-function goToPage(page: number) {
-  filters.value.pageNumber = page
-  fetchData()
-}
-
-onMounted(() => {
-  fetchData()
+const schema = yup.object({
+  minPrice: numberOrNull(),
+  maxPrice: numberOrNull(),
+  minUpside: numberOrNull().min(0, 'Debe ser mayor o igual a 0')
 })
+.test(
+  'both-or-none',
+  function (values) {
+    const { minPrice, maxPrice } = values
+
+    if (minPrice == null && maxPrice == null) return true
+    if (minPrice != null && maxPrice != null) return true
+
+    return this.createError({
+      path: minPrice == null ? 'minPrice' : 'maxPrice',
+      message: 'Debe ingresar mínimo y máximo'
+    })
+  }
+)
+.test(
+  'price-range',
+  function (values) {
+    const { minPrice, maxPrice } = values
+
+    if (minPrice == null || maxPrice == null) return true
+    if (maxPrice >= minPrice) return true
+
+    return this.createError({
+      path: 'maxPrice',
+      message: 'El precio máximo debe ser mayor o igual al mínimo'
+    })
+  }
+)
+
+const { errors, values, setFieldTouched, validate} = useForm({
+  validationSchema: schema,
+  initialValues: {
+    minPrice: store.filters.minPrice,
+    maxPrice: store.filters.maxPrice,
+    minUpside: store.filters.minUpside
+  }
+})
+
+const { value: minPrice } = useField<number | null>('minPrice')
+const { value: maxPrice } = useField<number | null>('maxPrice')
+const { value: minUpside } = useField<number | null>('minUpside')
+
+watch(minPrice, () => {
+  setFieldTouched('maxPrice', true)
+})
+
+watch(maxPrice, () => {
+  setFieldTouched('minPrice', true)
+})
+
+watch(values, async () => {
+  const result = await validate()
+
+  if (!result.valid) return
+
+  store.filters.minPrice = normalizeNumber(minPrice.value)
+  store.filters.maxPrice = normalizeNumber(maxPrice.value)
+  store.filters.minUpside = normalizeNumber(minUpside.value)
+
+  debouncedFetch()
+})
+
+const normalizeNumber = (v: number | null) =>
+  typeof v === 'number' && !Number.isNaN(v) ? v : undefined
+
+onMounted(store.fetch)
 </script>
