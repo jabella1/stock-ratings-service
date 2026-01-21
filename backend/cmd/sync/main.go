@@ -11,7 +11,7 @@ import (
 	"github.com/jabella1/stock-ratings-service/internal/features/common/utils"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/command"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/command/handler"
-	"github.com/jabella1/stock-ratings-service/internal/features/stock/infra/db/postgres"
+	"github.com/jabella1/stock-ratings-service/internal/features/stock/infra/db/cockroach"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/joho/godotenv"
 )
@@ -43,12 +43,12 @@ func main() {
 		log.Fatal("CONNECTION_STRING is not set")
 		return
 	}
-	connection, err := postgres.NewConnection(context, connectionString)
+	connection, err := cockroach.NewConnection(context, connectionString)
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
 	defer connection.Close(context)
-	queries := postgres.NewQueries(connection)
+	queries := cockroach.NewQueries(connection)
 	var next_page *string
 	baseUrlEnv := "CONNECTION_KARENAI_BASEURL"
 	baseUrl, err := utils.ValidateEmptyString(os.Getenv(baseUrlEnv), baseUrlEnv)
@@ -61,8 +61,8 @@ func main() {
 		log.Fatalf("Error de configuración: %v", err)
 	}
 	url := baseUrl + endpointsSwechallenge
-	var stockRatingRepository = postgres.CreateSqlcStockRatingRepository(queries)
-	var unitOfWork = postgres.CreateUnitOfWork(connection)
+	var stockRatingRepository = cockroach.CreateSqlcStockRatingRepository(queries)
+	var unitOfWork = cockroach.CreateUnitOfWork(connection)
 	var saveStockRatingCommandHandler = handler.CreateSaveStockRatingCommandHandler(stockRatingRepository, unitOfWork)
 	connectionKarenToken, err := utils.ValidateEmptyString(os.Getenv("CONNECTION_KARENAI_TOKEN"), "CONNECTION_KARENAI_TOKEN")
 	if err != nil {

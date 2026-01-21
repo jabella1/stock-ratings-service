@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/query/handler"
-	"github.com/jabella1/stock-ratings-service/internal/features/stock/infra/db/postgres"
+	"github.com/jabella1/stock-ratings-service/internal/features/stock/infra/db/cockroach"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/interface/api/rest"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
@@ -27,13 +27,13 @@ func main() {
 		port = ":8080"
 	}
 	context := context.Background()
-	connection, err := postgres.NewConnection(context, connectionString)
+	connection, err := cockroach.NewConnection(context, connectionString)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 	defer connection.Close(context)
-	queries := postgres.NewQueries(connection)
-	stockRatingRepository := postgres.CreateSqlcStockRatingRepository(queries)
+	queries := cockroach.NewQueries(connection)
+	stockRatingRepository := cockroach.CreateSqlcStockRatingRepository(queries)
 	stockRatingByTickerQueryHandler := handler.CreateGetStockRatingByTickerQueryHandler(stockRatingRepository)
 	getListStockRatingQueryHandler := handler.CreateGetListStockRatingQueryHandler(context, stockRatingRepository)
 	e := echo.New()
