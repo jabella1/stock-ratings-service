@@ -3,7 +3,7 @@ package entities
 import (
 	"time"
 
-	"github.com/jabella1/stock-ratings-service/internal/features/stock/domain/domainValidation"
+	"github.com/jabella1/stock-ratings-service/internal/features/stock/domain/validation"
 	valueobjects "github.com/jabella1/stock-ratings-service/internal/features/stock/domain/valueObjects"
 )
 
@@ -25,10 +25,10 @@ type StockRating struct {
 
 func CreateStockRating(ticker, company string, brokerage, action, ratingFrom,
 	ratingTo *string, targetFrom, targetTo *float64, upside float32, changeTarget, currentPrice float64) (*StockRating, error) {
-	if err := domainValidation.ValidateEmptyString(ticker, "ticker"); err != nil {
+	if err := validation.ValidateEmptyString(ticker, "ticker"); err != nil {
 		return nil, err
 	}
-	if err := domainValidation.ValidateEmptyString(company, "company"); err != nil {
+	if err := validation.ValidateEmptyString(company, "company"); err != nil {
 		return nil, err
 	}
 
