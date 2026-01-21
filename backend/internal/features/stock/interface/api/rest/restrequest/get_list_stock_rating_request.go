@@ -1,4 +1,4 @@
-package request
+package restrequest
 
 type GetListStockRatingRequest struct {
 	Search         *string  `json:"search"`
