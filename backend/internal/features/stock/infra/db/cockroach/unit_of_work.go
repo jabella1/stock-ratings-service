@@ -1,4 +1,4 @@
-package postgres
+package cockroach
 
 import (
 	"context"
