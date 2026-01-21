@@ -1,30 +1,21 @@
 import { defineStore } from 'pinia'
 import {
   type PaginatedApiResponse,
-  type FetchRatingsParams,
-  DEFAULT_METADATA
+  DEFAULT_METADATA,
+  DEFAULT_FILTERS
 } from '@/api/models/stockRatingModel'
 import { fetchListStockRating } from '@/api/services/stockRatingService'
 
 export const useStockRatingStore = defineStore('stockRating', {
   state: () => ({
-    filters: {
-      search: '',
-      pageNumber: 1,
-      pageSize: 10,
-      orderBy: '',
-      orderDirection: '' as 'asc' | 'desc' | '',
-      minUpside: undefined,
-      minPrice: undefined,
-      maxPrice: undefined
-    } as FetchRatingsParams,
-
+    filters: { ... DEFAULT_FILTERS},
     apiData: {
       Results: [],
       Metadata: { ...DEFAULT_METADATA }
     } as PaginatedApiResponse,
 
-    loading: false
+    loading: false,
+    showBestOnly: false
   }),
 
   actions: {
@@ -73,6 +64,9 @@ export const useStockRatingStore = defineStore('stockRating', {
     },
 
     sortBy(column: string) {
+      if(this.showBestOnly){
+        return
+      }
       if (this.filters.orderBy === column) {
         this.filters.orderDirection =
           this.filters.orderDirection === 'asc' ? 'desc' : 'asc'
@@ -87,6 +81,17 @@ export const useStockRatingStore = defineStore('stockRating', {
     goToPage(page: number) {
       this.filters.pageNumber = page
       this.fetch()
+    },
+
+    setDefaultFilters(){
+      this.filters.search = ''
+      this.filters.minPrice = undefined
+      this.filters.maxPrice = undefined
+      this.filters.minUpside = undefined
+    },
+
+    setDefaultFetchParams(){
+      this.filters = { ...DEFAULT_FILTERS }
     }
   }
 })

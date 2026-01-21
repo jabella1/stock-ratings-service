@@ -16,8 +16,10 @@
             v-model="filters.search"
             type="text"
             placeholder="Ej: AAPL, Apple"
-            class="w-full pl-3 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+            class="w-full pl-3 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition
+           disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:border-gray-200"
             @input="debouncedFetch"
+            :disabled=showBestOnly
           />
         </div>
 
@@ -27,7 +29,9 @@
             v-model.number="minUpside"
             type="number"
             placeholder="Ej: 20"
-            class="w-full pl-3 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+            class="w-full pl-3 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition
+            disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:border-gray-200"
+            :disabled=showBestOnly
           />
           <p class="text-red-500 text-xs mt-1">
             {{ errors.minUpside }}
@@ -43,7 +47,9 @@
                 v-model.number="minPrice"
                 type="number"
                 placeholder="Mínimo"
-                class="block pl-3 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                class="block pl-3 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition
+                disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:border-gray-200"
+                :disabled=showBestOnly
               />
               <p class="text-red-500 text-xs mt-1">
                 {{ errors.minPrice }}
@@ -54,7 +60,9 @@
                 v-model.number="maxPrice"
                 type="number"
                 placeholder="Máximo"
-                class="block pl-3 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                class="block pl-3 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition
+                disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:border-gray-200"
+                :disabled=showBestOnly
               />
               <p class="text-red-500 text-xs mt-1">
                 {{ errors.maxPrice }}
@@ -62,6 +70,15 @@
             </div>
           </div>
         </div>
+
+        <label class="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            v-model="showBestOnlyRef"
+            class="rounded border-gray-300"
+          />
+            Mostrar solo la mejor oportunidad
+        </label>
       </div>
 
       <div v-if="loading" class="absolute inset-0 bg-white/70 flex items-center justify-center z-20 rounded-xl">
@@ -85,13 +102,17 @@
           <td class="px-4 py-3 border-b">
             <span class="px-2 py-1 rounded-full text-xs">{{ row.rating_from }} → {{ row.rating_to }}</span>
           </td>
-          <td class="px-4 py-3 border-b">{{ row.target_from }} → {{ row.target_to }}</td>
-          <td class="px-4 py-3 border-b">{{ row.currentPrice }}</td>
-          <td class="px-4 py-3 border-b">{{ row.upside }}%</td>
+          <td class="px-4 py-3 border-b">${{ row.target_from }} → ${{ row.target_to }}</td>
+          <td class="px-4 py-3 border-b">${{ row.currentPrice }}</td>
+          <td class="px-4 py-3 border-b">
+            <span :class="{'text-green-500': row.upside > 0, 'text-red-500': row.upside < 0}">
+              {{ row.upside }}%
+            </span>
+          </td> 
         </template>
       </BaseTable>
 
-      <div class="mt-6 flex flex-wrap items-center justify-between gap-4">
+      <div :hidden=showBestOnly class="mt-6 flex flex-wrap items-center justify-between gap-4">
         <div class="flex items-center gap-2">
           <span class="text-sm text-gray-600">Mostrar:</span>
           <div class="flex border rounded-lg overflow-hidden">
@@ -149,8 +170,9 @@ import BaseTable from '@/components/BaseTable.vue'
 import { useForm, useField } from 'vee-validate'
 import * as yup from 'yup'
 
+const showBestOnlyRef = ref(false)
 const store = useStockRatingStore()
-const { filters, apiData, loading } = storeToRefs(store)
+const { filters, apiData, loading, showBestOnly} = storeToRefs(store)
 
 const columns = [
   { key: 'symbol', label: 'Código' },
@@ -233,17 +255,36 @@ watch(maxPrice, () => {
   setFieldTouched('minPrice', true)
 })
 
-watch(values, async () => {
+watch(showBestOnlyRef, () => {
+if(showBestOnlyRef.value){
+    getBestStock()
+    store.setDefaultFilters()
+    store.showBestOnly = true
+    minPrice.value = null;
+    maxPrice.value = null;
+    minUpside.value = null;
+  }else{
+    store.setDefaultFetchParams()
+    store.showBestOnly = false
+  }
+  debouncedFetch()
+})
+
+watch(values, async () => {  
   const result = await validate()
-
   if (!result.valid) return
-
   store.filters.minPrice = normalizeNumber(minPrice.value)
   store.filters.maxPrice = normalizeNumber(maxPrice.value)
   store.filters.minUpside = normalizeNumber(minUpside.value)
-
   debouncedFetch()
 })
+
+function getBestStock(){
+  store.filters.pageSize = 1
+  store.filters.pageNumber = 1
+  store.filters.orderBy = 'upside'
+  store.filters.orderDirection = 'desc'
+}
 
 const normalizeNumber = (v: number | null) =>
   typeof v === 'number' && !Number.isNaN(v) ? v : undefined
