@@ -35,7 +35,7 @@ func main() {
 	queries := postgres.NewQueries(connection)
 	stockRatingRepository := postgres.CreateSqlcStockRatingRepository(queries)
 	stockRatingByTickerQueryHandler := handler.CreateGetStockRatingByTickerQueryHandler(stockRatingRepository)
-	getListStockRatingQueryHandler := handler.CreateGetListStockRatingQueryHandler(stockRatingRepository)
+	getListStockRatingQueryHandler := handler.CreateGetListStockRatingQueryHandler(context, stockRatingRepository)
 	e := echo.New()
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: getAllowedOrigins(),

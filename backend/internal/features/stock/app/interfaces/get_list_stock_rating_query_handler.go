@@ -1,7 +1,11 @@
 package interfaces
 
-import "github.com/jabella1/stock-ratings-service/internal/features/stock/app/query"
+import (
+	"context"
+
+	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/query"
+)
 
 type GetListStockRatingQueryHandler interface {
-	GetListStockRating(getListStockRatingQuery *query.GetListStockRatingQuery) (*query.GetListStockRatingResult, error)
+	GetListStockRating(context context.Context, getListStockRatingQuery *query.GetListStockRatingQuery) (*query.GetListStockRatingResult, error)
 }

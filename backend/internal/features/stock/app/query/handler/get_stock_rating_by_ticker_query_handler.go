@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"context"
+
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/dto"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/interfaces"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/query"
@@ -17,8 +19,8 @@ func CreateGetStockRatingByTickerQueryHandler(stockRatingRepository repositories
 	}
 }
 
-func (s *StockRatingService) GetStockRatingByTicker(getStockRatingByTickerQuery *query.GetStockRatingByTickerQuery) (*query.GetStockRatingByTickerResult, error) {
-	stockRating, err := s.stockRatingRepository.GetStockRatingByTicker(getStockRatingByTickerQuery.Ticker)
+func (s *StockRatingService) GetStockRatingByTicker(context context.Context, getStockRatingByTickerQuery *query.GetStockRatingByTickerQuery) (*query.GetStockRatingByTickerResult, error) {
+	stockRating, err := s.stockRatingRepository.GetStockRatingByTicker(context, getStockRatingByTickerQuery.Ticker)
 	if err != nil {
 		return nil, err
 	}
