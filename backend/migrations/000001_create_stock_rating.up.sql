@@ -8,8 +8,8 @@ CREATE TABLE challenge.stock_rating (
   action STRING NULL,
   rating_from STRING NULL,
   rating_to STRING NULL,
-  target_from DECIMAL(10,2) NULL,
-  target_to DECIMAL(10,2) NULL,
+  target_from DECIMAL(10,4) NULL,
+  target_to DECIMAL(10,4) NULL,
   created_at TIMESTAMPTZ NULL DEFAULT NOW(),
   CONSTRAINT stock_rating_pkey PRIMARY KEY (id)
 );
