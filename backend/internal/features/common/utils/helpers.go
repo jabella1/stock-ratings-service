@@ -29,7 +29,7 @@ func TimeFromTimestamptz(ts pgtype.Timestamptz) time.Time {
 func NumericFromFloat64(f float64) pgtype.Numeric {
 	var n pgtype.Numeric
 	// Convert float64 to string first, then scan
-	n.Scan(fmt.Sprintf("%.2f", f))
+	n.Scan(fmt.Sprintf("%.4f", f))
 	return n
 }
 
