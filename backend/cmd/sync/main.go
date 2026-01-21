@@ -9,8 +9,9 @@ import (
 	"os"
 
 	"github.com/jabella1/stock-ratings-service/internal/features/common/utils"
+	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/command"
+	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/command/handler"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/infra/db/postgres"
-	"github.com/jabella1/stock-ratings-service/internal/features/stock/infra/db/sqlc"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/joho/godotenv"
 )
@@ -54,6 +55,9 @@ func main() {
 	endpointSwechallengeEnv := "CONNECTION_KARENAI_ENDPOINTS_SWECHALLENGE"
 	endpointsSwechallenge := utils.ValidateEmptyString(os.Getenv(endpointSwechallengeEnv), endpointSwechallengeEnv)
 	url := baseUrl + endpointsSwechallenge
+	var stockRatingRepository = postgres.CreateSqlcStockRatingRepository(queries)
+	var unitOfWork = postgres.CreateUnitOfWork(connection)
+	var saveStockRatingCommandHandler = handler.CreateSaveStockRatingCommandHandler(stockRatingRepository, unitOfWork)
 	for {
 		var requestURL string
 		if next_page != nil {
@@ -84,36 +88,21 @@ func main() {
 			targetFromNumeric := utils.NumericFromString(item.TargetFrom)
 			targetToNumeric := utils.NumericFromString(item.TargetTo)
 			targetFromMapped := utils.Float64FromNumeric(targetFromNumeric)
-			var targetToMapped = utils.Float64FromNumeric(targetToNumeric)
-			currentPrice := GetOrFetchCurrentPrice(item.Ticker, yahooFinanceBaseURL, interval, rangeVal)
-			upside := utils.CalculatePercentageChange(
-				&currentPrice,
-				targetToMapped,
-			)
-			changeTarget := utils.CalculatePercentageChange(
-				targetFromMapped,
-				targetToMapped,
-			)
-			stockRating, _ := queries.GetStockRatingByTicker(context, item.Ticker)
-			CheckAndInsertHistory(context, queries, &stockRating, currentPrice, upside)
+			targetToMapped := utils.Float64FromNumeric(targetToNumeric)
 
-			err = queries.UpsertStockRating(context, sqlc.UpsertStockRatingParams{
+			currentPrice := GetOrFetchCurrentPrice(item.Ticker, yahooFinanceBaseURL, interval, rangeVal)
+			saveStockRatingCommandHandler.SaveStockRating(context, &command.SaveStockRatingCommand{
 				Ticker:       item.Ticker,
 				Company:      item.Company,
-				Brokerage:    item.Brokerage,
-				Action:       item.Action,
-				RatingFrom:   item.RatingFrom,
-				RatingTo:     item.RatingTo,
-				TargetFrom:   targetFromNumeric,
-				TargetTo:     targetToNumeric,
-				Upside:       utils.NumericFromFloat64(upside),
-				CurrentPrice: utils.NumericFromFloat64(currentPrice),
-				ChangeTarget: utils.NumericFromFloat64(changeTarget),
+				Brokerage:    &item.Brokerage.String,
+				Action:       item.Action.String,
+				RatingFrom:   item.RatingFrom.String,
+				RatingTo:     item.RatingTo.String,
+				TargetFrom:   *targetFromMapped,
+				TargetTo:     *targetToMapped,
+				CurrentPrice: currentPrice,
 			})
 
-			if err != nil {
-				log.Printf("Error con %s: %v", item.Ticker, err)
-			}
 		}
 
 		if apiResponse.NextPage == nil || *apiResponse.NextPage == "" {
@@ -167,29 +156,4 @@ func getCurrentPrice(ticker string, yahooFinanceBaseURL, interval, rangeVal stri
 	}
 
 	return result.Chart.Result[0].Meta.RegularMarketPrice, nil
-}
-
-func CheckAndInsertHistory(context context.Context, queries *sqlc.Queries, stockRating *sqlc.ChallengeStockRating, currentPrice, upside float64) {
-	if stockRating == nil {
-		return
-	}
-
-	priceChanged := stockRating.CurrentPrice != utils.NumericFromFloat64(currentPrice)
-	upsideChanged := stockRating.Upside != utils.NumericFromFloat64(upside)
-
-	if priceChanged || upsideChanged {
-		oldPrice := utils.Float64FromNumeric(stockRating.CurrentPrice)
-		oldUpside := utils.Float64FromNumeric(stockRating.Upside)
-
-		err := queries.InsertStockRatingHistory(context, sqlc.InsertStockRatingHistoryParams{
-			StockRatingID:   stockRating.ID,
-			OldCurrentPrice: utils.NumericFromFloat64(*oldPrice),
-			NewCurrentPrice: utils.NumericFromFloat64(currentPrice),
-			OldUpside:       utils.NumericFromFloat64(*oldUpside),
-			NewUpside:       utils.NumericFromFloat64(upside),
-		})
-		if err != nil {
-			log.Printf("Error inserting history for %s: %v", stockRating.Ticker, err)
-		}
-	}
 }

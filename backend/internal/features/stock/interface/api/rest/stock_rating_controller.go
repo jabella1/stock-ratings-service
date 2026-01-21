@@ -38,7 +38,7 @@ func (c *StockRatingController) GetStockRatingByTicker(context echo.Context) err
 		Ticker: ticker,
 	}
 
-	result, err := c.getStockRatingByTickerQueryHandler.GetStockRatingByTicker(getStockRatingByTickerQuery)
+	result, err := c.getStockRatingByTickerQueryHandler.GetStockRatingByTicker(context.Request().Context(), getStockRatingByTickerQuery)
 	if err != nil {
 		return context.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -82,7 +82,7 @@ func (c *StockRatingController) GetListStockRating(context echo.Context) error {
 		MaxPrice:       maxPrice,
 	}
 
-	result, err := c.getListStockRatingQueryHandler.GetListStockRating(getListStockRatingQuery)
+	result, err := c.getListStockRatingQueryHandler.GetListStockRating(context.Request().Context(), getListStockRatingQuery)
 	if err != nil {
 		return context.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}

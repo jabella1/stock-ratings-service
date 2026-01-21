@@ -1,8 +1,11 @@
 package handler
 
 import (
+	"context"
+
 	"github.com/jabella1/stock-ratings-service/internal/features/common/utils"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/dto"
+	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/interfaces"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/query"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/domain/pagination"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/domain/repositories"
@@ -12,7 +15,7 @@ type GetListStockRatingQueryHandler struct {
 	stockRatingRepository repositories.StockRatingRepository
 }
 
-func CreateGetListStockRatingQueryHandler(stockRatingRepository repositories.StockRatingRepository) *GetListStockRatingQueryHandler {
+func CreateGetListStockRatingQueryHandler(context context.Context, stockRatingRepository repositories.StockRatingRepository) interfaces.GetListStockRatingQueryHandler {
 	return &GetListStockRatingQueryHandler{
 		stockRatingRepository: stockRatingRepository,
 	}
@@ -32,10 +35,10 @@ var orderByMap = map[string]string{
 	"currentPrice": "current_price",
 }
 
-func (h *GetListStockRatingQueryHandler) GetListStockRating(getListStockRatingQuery *query.GetListStockRatingQuery) (*query.GetListStockRatingResult, error) {
+func (h *GetListStockRatingQueryHandler) GetListStockRating(context context.Context, getListStockRatingQuery *query.GetListStockRatingQuery) (*query.GetListStockRatingResult, error) {
 	var orderBy = mapOrderBy(getListStockRatingQuery.OrderBy)
 	var orderDirection = utils.MapOrderDirection(getListStockRatingQuery.OrderDirection)
-	listStockRatings, err := h.stockRatingRepository.GetListStockRating(getListStockRatingQuery.Search,
+	listStockRatings, err := h.stockRatingRepository.GetListStockRating(context, getListStockRatingQuery.Search,
 		getListStockRatingQuery.PageSize, getListStockRatingQuery.PageNumber, orderBy, orderDirection,
 		getListStockRatingQuery.MinUpside, getListStockRatingQuery.MinPrice, getListStockRatingQuery.MaxPrice)
 	if err != nil {

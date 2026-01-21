@@ -4,7 +4,7 @@ SELECT id, ticker, company, brokerage, action, rating_from, rating_to,
 FROM challenge.stock_rating
 WHERE ticker = $1;
 
--- name: UpsertStockRating :exec
+-- name: UpsertStockRating :one
 INSERT INTO challenge.stock_rating (
     ticker, company, brokerage, action, rating_from, rating_to,
     target_from, target_to, upside, change_target, current_price
@@ -21,7 +21,8 @@ ON CONFLICT (ticker) DO UPDATE SET
     target_to = EXCLUDED.target_to,
     current_price = EXCLUDED.current_price,
     upside = EXCLUDED.upside,
-    change_target = EXCLUDED.change_target;
+    change_target = EXCLUDED.change_target
+RETURNING id;
 
 -- name: ListStockRatings :many
 SELECT 

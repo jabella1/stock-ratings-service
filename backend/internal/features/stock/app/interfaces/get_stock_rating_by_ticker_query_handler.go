@@ -1,7 +1,11 @@
 package interfaces
 
-import "github.com/jabella1/stock-ratings-service/internal/features/stock/app/query"
+import (
+	"context"
+
+	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/query"
+)
 
 type GetStockRatingByTickerQueryHandler interface {
-	GetStockRatingByTicker(getStockRatingByTickerQuery *query.GetStockRatingByTickerQuery) (*query.GetStockRatingByTickerResult, error)
+	GetStockRatingByTicker(context context.Context, getStockRatingByTickerQuery *query.GetStockRatingByTickerQuery) (*query.GetStockRatingByTickerResult, error)
 }

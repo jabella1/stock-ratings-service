@@ -13,7 +13,7 @@ type Querier interface {
 	GetStockRatingByTicker(ctx context.Context, ticker string) (ChallengeStockRating, error)
 	InsertStockRatingHistory(ctx context.Context, arg InsertStockRatingHistoryParams) error
 	ListStockRatings(ctx context.Context, arg ListStockRatingsParams) ([]ChallengeStockRating, error)
-	UpsertStockRating(ctx context.Context, arg UpsertStockRatingParams) error
+	UpsertStockRating(ctx context.Context, arg UpsertStockRatingParams) (int64, error)
 }
 
 var _ Querier = (*Queries)(nil)

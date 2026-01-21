@@ -1,9 +1,9 @@
 package entities
 
 import (
-	"errors"
 	"time"
 
+	"github.com/jabella1/stock-ratings-service/internal/features/stock/domain/domainValidation"
 	valueobjects "github.com/jabella1/stock-ratings-service/internal/features/stock/domain/valueObjects"
 )
 
@@ -25,10 +25,10 @@ type StockRating struct {
 
 func CreateStockRating(ticker, company string, brokerage, action, ratingFrom,
 	ratingTo *string, targetFrom, targetTo *float64, upside float32, changeTarget, currentPrice float64) (*StockRating, error) {
-	if err := validateEmptyString(ticker, "ticker"); err != nil {
+	if err := domainValidation.ValidateEmptyString(ticker, "ticker"); err != nil {
 		return nil, err
 	}
-	if err := validateEmptyString(company, "company"); err != nil {
+	if err := domainValidation.ValidateEmptyString(company, "company"); err != nil {
 		return nil, err
 	}
 
@@ -61,13 +61,6 @@ func CreateStockRating(ticker, company string, brokerage, action, ratingFrom,
 		changeTarget: changeTarget,
 		currentPrice: currenPriceVO,
 	}, nil
-}
-
-func validateEmptyString(stringToValidate string, fieldName string) error {
-	if stringToValidate == "" {
-		return errors.New(fieldName + " is required")
-	}
-	return nil
 }
 
 func (sr *StockRating) GetTicker() string {
@@ -108,4 +101,12 @@ func (sr *StockRating) GetUpside() float32 {
 
 func (sr *StockRating) GetCurrentPrice() float64 {
 	return sr.currentPrice.GetValue()
+}
+
+func (sr *StockRating) GetChangeTarget() float64 {
+	return sr.changeTarget
+}
+
+func (sr *StockRating) GetCreateAt() time.Time {
+	return sr.createdAt
 }
