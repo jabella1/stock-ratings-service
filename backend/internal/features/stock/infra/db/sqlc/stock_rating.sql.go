@@ -200,7 +200,7 @@ func (q *Queries) ListStockRatings(ctx context.Context, arg ListStockRatingsPara
 	return items, nil
 }
 
-const upsertStockRating = `-- name: UpsertStockRating :exec
+const upsertStockRating = `-- name: UpsertStockRating :one
 INSERT INTO challenge.stock_rating (
     ticker, company, brokerage, action, rating_from, rating_to,
     target_from, target_to, upside, change_target, current_price
@@ -218,6 +218,7 @@ ON CONFLICT (ticker) DO UPDATE SET
     current_price = EXCLUDED.current_price,
     upside = EXCLUDED.upside,
     change_target = EXCLUDED.change_target
+RETURNING id
 `
 
 type UpsertStockRatingParams struct {
@@ -234,8 +235,8 @@ type UpsertStockRatingParams struct {
 	CurrentPrice pgtype.Numeric `json:"current_price"`
 }
 
-func (q *Queries) UpsertStockRating(ctx context.Context, arg UpsertStockRatingParams) error {
-	_, err := q.db.Exec(ctx, upsertStockRating,
+func (q *Queries) UpsertStockRating(ctx context.Context, arg UpsertStockRatingParams) (int64, error) {
+	row := q.db.QueryRow(ctx, upsertStockRating,
 		arg.Ticker,
 		arg.Company,
 		arg.Brokerage,
@@ -248,5 +249,7 @@ func (q *Queries) UpsertStockRating(ctx context.Context, arg UpsertStockRatingPa
 		arg.ChangeTarget,
 		arg.CurrentPrice,
 	)
-	return err
+	var id int64
+	err := row.Scan(&id)
+	return id, err
 }
