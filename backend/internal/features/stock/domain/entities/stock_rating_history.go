@@ -1,7 +1,7 @@
 package entities
 
 import (
-	"github.com/jabella1/stock-ratings-service/internal/features/stock/domain/domainValidation"
+	"github.com/jabella1/stock-ratings-service/internal/features/stock/domain/validation"
 	valueobjects "github.com/jabella1/stock-ratings-service/internal/features/stock/domain/valueObjects"
 )
 
@@ -15,7 +15,7 @@ type StockRatingHistory struct {
 
 func CreateStockRatingHistory(stockRatingId int64, oldCurrentPrice float64, newCurrentPrice float64,
 	oldUpside *float32, newUpside float32) (*StockRatingHistory, error) {
-	err := domainValidation.NonNegativeOrZeroId(stockRatingId, "stockRatingId")
+	err := validation.NonNegativeOrZeroId(stockRatingId, "stockRatingId")
 	if err != nil {
 		return nil, err
 	}

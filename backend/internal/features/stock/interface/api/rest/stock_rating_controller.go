@@ -7,7 +7,7 @@ import (
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/interfaces"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/app/query"
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/domain/pagination"
-	"github.com/jabella1/stock-ratings-service/internal/features/stock/interface/api/rest/request"
+	"github.com/jabella1/stock-ratings-service/internal/features/stock/interface/api/rest/restrequest"
 	"github.com/labstack/echo/v4"
 )
 
@@ -47,7 +47,7 @@ func (c *StockRatingController) GetStockRatingByTicker(context echo.Context) err
 }
 
 func (c *StockRatingController) GetListStockRating(context echo.Context) error {
-	getListStockRatingRequest := &request.GetListStockRatingRequest{}
+	getListStockRatingRequest := &restrequest.GetListStockRatingRequest{}
 	if err := context.Bind(getListStockRatingRequest); err != nil {
 		return context.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request body"})
 	}

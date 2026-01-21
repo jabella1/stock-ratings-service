@@ -51,13 +51,35 @@ func main() {
 	queries := postgres.NewQueries(connection)
 	var next_page *string
 	baseUrlEnv := "CONNECTION_KARENAI_BASEURL"
-	baseUrl := utils.ValidateEmptyString(os.Getenv(baseUrlEnv), baseUrlEnv)
+	baseUrl, err := utils.ValidateEmptyString(os.Getenv(baseUrlEnv), baseUrlEnv)
+	if err != nil {
+		log.Fatalf("Error de configuración: %v", err)
+	}
 	endpointSwechallengeEnv := "CONNECTION_KARENAI_ENDPOINTS_SWECHALLENGE"
-	endpointsSwechallenge := utils.ValidateEmptyString(os.Getenv(endpointSwechallengeEnv), endpointSwechallengeEnv)
+	endpointsSwechallenge, err := utils.ValidateEmptyString(os.Getenv(endpointSwechallengeEnv), endpointSwechallengeEnv)
+	if err != nil {
+		log.Fatalf("Error de configuración: %v", err)
+	}
 	url := baseUrl + endpointsSwechallenge
 	var stockRatingRepository = postgres.CreateSqlcStockRatingRepository(queries)
 	var unitOfWork = postgres.CreateUnitOfWork(connection)
 	var saveStockRatingCommandHandler = handler.CreateSaveStockRatingCommandHandler(stockRatingRepository, unitOfWork)
+	connectionKarenToken, err := utils.ValidateEmptyString(os.Getenv("CONNECTION_KARENAI_TOKEN"), "CONNECTION_KARENAI_TOKEN")
+	if err != nil {
+		log.Fatalf("Error de configuración: %v", err)
+	}
+	yahooFinanceBaseURL, err := utils.ValidateEmptyString(os.Getenv("CONNECTION_YAHOO_FINANCE_BASEURL"), "YAHOO_FINANCE_BASEURL")
+	if err != nil {
+		log.Fatalf("Error de configuración: %v", err)
+	}
+	interval, err := utils.ValidateEmptyString(os.Getenv("CONNECTION_YAHOO_FINANCE_INTERVAL"), "YAHOO_FINANCE_INTERVAL")
+	if err != nil {
+		log.Fatalf("Error de configuración: %v", err)
+	}
+	rangeVal, err := utils.ValidateEmptyString(os.Getenv("CONNECTION_YAHOO_FINANCE_RANGE"), "YAHOO_FINANCE_RANGE")
+	if err != nil {
+		log.Fatalf("Error de configuración: %v", err)
+	}
 	for {
 		var requestURL string
 		if next_page != nil {
@@ -65,24 +87,21 @@ func main() {
 		} else {
 			requestURL = url
 		}
-
 		request, err := http.NewRequest("GET", requestURL, nil)
 		if err != nil {
 			log.Fatal("Failed to create request:", err)
 		}
-		request.Header.Set("Authorization", "Bearer "+utils.ValidateEmptyString(os.Getenv("CONNECTION_KARENAI_TOKEN"), "CONNECTION_KARENAI_TOKEN"))
+		request.Header.Set("Authorization", "Bearer "+connectionKarenToken)
 		response, err := http.DefaultClient.Do(request)
 		if err != nil {
 			log.Fatal("Failed to perform request:", err)
 		}
-		defer response.Body.Close()
+
 		var apiResponse Response
 		if err := json.NewDecoder(response.Body).Decode(&apiResponse); err != nil {
 			log.Fatal("Failed to decode response:", err)
 		}
-		yahooFinanceBaseURL := utils.ValidateEmptyString(os.Getenv("CONNECTION_YAHOO_FINANCE_BASEURL"), "YAHOO_FINANCE_BASEURL")
-		interval := utils.ValidateEmptyString(os.Getenv("CONNECTION_YAHOO_FINANCE_INTERVAL"), "YAHOO_FINANCE_INTERVAL")
-		rangeVal := utils.ValidateEmptyString(os.Getenv("CONNECTION_YAHOO_FINANCE_RANGE"), "YAHOO_FINANCE_RANGE")
+		response.Body.Close()
 
 		for _, item := range apiResponse.Items {
 			targetFromNumeric := utils.NumericFromString(item.TargetFrom)
@@ -149,7 +168,10 @@ func getCurrentPrice(ticker string, yahooFinanceBaseURL, interval, rangeVal stri
 			} `json:"result"`
 		} `json:"chart"`
 	}
-	json.NewDecoder(resp.Body).Decode(&result)
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return 0, fmt.Errorf("error decoding yahoo response: %w", err)
+	}
 
 	if len(result.Chart.Result) == 0 {
 		return 0, fmt.Errorf("no hay datos para %s", ticker)

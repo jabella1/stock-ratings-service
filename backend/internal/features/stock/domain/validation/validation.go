@@ -1,4 +1,4 @@
-package domainValidation
+package validation
 
 import "errors"
 

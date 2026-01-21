@@ -9,17 +9,17 @@ import (
 	"github.com/jabella1/stock-ratings-service/internal/features/stock/domain/repositories"
 )
 
-type StockRatingService struct {
+type GetStockRatingByTickerQueryHandler struct {
 	stockRatingRepository repositories.StockRatingRepository
 }
 
 func CreateGetStockRatingByTickerQueryHandler(stockRatingRepository repositories.StockRatingRepository) interfaces.GetStockRatingByTickerQueryHandler {
-	return &StockRatingService{
+	return &GetStockRatingByTickerQueryHandler{
 		stockRatingRepository: stockRatingRepository,
 	}
 }
 
-func (s *StockRatingService) GetStockRatingByTicker(context context.Context, getStockRatingByTickerQuery *query.GetStockRatingByTickerQuery) (*query.GetStockRatingByTickerResult, error) {
+func (s *GetStockRatingByTickerQueryHandler) GetStockRatingByTicker(context context.Context, getStockRatingByTickerQuery *query.GetStockRatingByTickerQuery) (*query.GetStockRatingByTickerResult, error) {
 	stockRating, err := s.stockRatingRepository.GetStockRatingByTicker(context, getStockRatingByTickerQuery.Ticker)
 	if err != nil {
 		return nil, err
