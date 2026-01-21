@@ -37,6 +37,17 @@ export interface FetchRatingsParams {
   maxPrice?: number  | undefined
 }
 
+export const DEFAULT_FILTERS: FetchRatingsParams = {
+  search: '',
+  pageNumber: 1,
+  pageSize: 10,
+  orderBy: '',
+  orderDirection: '' as 'asc' | 'desc' | '',
+  minUpside: undefined,
+  minPrice: undefined,
+  maxPrice: undefined
+}
+
 export const DEFAULT_METADATA: ApiMetadata = {
   pageNumber: 1,
   totalPages: 0,
