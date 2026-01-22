@@ -74,10 +74,10 @@
         <label class="flex items-center gap-2 text-sm">
           <input
             type="checkbox"
-            v-model="showBestOnlyRef"
+            v-model="showBestOnly"
             class="rounded border-gray-300"
           />
-            Mostrar solo la mejor oportunidad
+          Mostrar solo la mejor oportunidad
         </label>
       </div>
 
@@ -170,9 +170,10 @@ import BaseTable from '@/components/BaseTable.vue'
 import { useForm, useField } from 'vee-validate'
 import * as yup from 'yup'
 
-const showBestOnlyRef = ref(false)
 const store = useStockRatingStore()
 const { filters, apiData, loading, showBestOnly} = storeToRefs(store)
+
+const showBestOnlyRef = ref(showBestOnly)
 
 const columns = [
   { key: 'symbol', label: 'Código' },

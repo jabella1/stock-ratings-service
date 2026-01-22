@@ -7,29 +7,37 @@
     </aside> -->
 
     <div class="flex-1 flex flex-col">
-      <header class="bg-white shadow p-4 flex justify-between items-center">
-        <h1 class="text-lg font-semibold">Stock Ratings</h1>
-        <nav class="space-y-2 flex">
+    <header class="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+      <h1 class="text-lg font-semibold text-gray-900">
+        Stock Ratings
+      </h1>
+
+      <nav class="flex gap-1">
         <router-link
           to="/"
-          class="block px-4 py-2 rounded hover:bg-gray-500"
-          active-class="bg-gray-500"
+          class="px-4 py-2 rounded-md text-gray-700
+                hover:bg-gray-100
+                transition"
+          active-class="bg-gray-200 text-gray-900 font-medium"
         >
           Inicio
         </router-link>
+
         <router-link
           to="/list-stock-rating"
-          class="block px-4 py-2 rounded hover:bg-gray-500"
-          active-class="bg-gray-500"
+          class="px-4 py-2 rounded-md text-gray-700
+                hover:bg-gray-100
+                transition"
+          active-class="bg-gray-200 text-gray-900 font-medium"
         >
           Listado de acciones
         </router-link>
       </nav>
-      </header>
+    </header>
       <main class="p-6 flex-1 bg-gray-100">
         <slot />
       </main>
-      <footer class="bg-gray-800 text-white text-center py-3 text-sm">
+    <footer class="bg-gray-900 text-gray-300 text-center py-3 text-sm">
       © {{ currentYear }} Stock Ratings App. Todos los derechos reservados.
     </footer>
     </div>
